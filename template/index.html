@@ -60,7 +60,15 @@
         </aside>
 
         <section id="posts" class="flex flex-colum gap-4">
-          <a class="create-post" href="#">Create new post</a>
+          <form action="">
+            <textarea
+              class="post-content-input"
+              name="comment"
+              rows="4"
+              required
+            ></textarea>
+            <button class="create-post" href="#">Create new post</button>
+          </form>
 
           <div class="post flex gap-5">
             <div class="like flex flex-colum align-center justify-center gap-1">
