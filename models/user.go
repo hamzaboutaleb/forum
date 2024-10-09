@@ -3,8 +3,11 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"forum/config"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 var (
@@ -13,10 +16,10 @@ var (
 )
 
 type User struct {
-	ID       int64  `json:"id"`
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
-	Password string `json:"-"`
+	Password string `json:"password"`
 }
 
 type UserRepository struct {
@@ -28,25 +31,25 @@ func NewUserRepository() *UserRepository {
 }
 
 func (r *UserRepository) CreateUser(user *User) error {
-	query := "INSERT INTO users (email, username, password) VALUES (?, ?, ?)"
+	query := "INSERT INTO users (id, email, username, password) VALUES (?,?,?,?)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	result, err := stmt.Exec(user.Email, user.Username, user.Password)
+	userID, err := uuid.NewV7()
 	if err != nil {
 		return err
 	}
-	userID, err := result.LastInsertId()
+	_, err = stmt.Exec(userID.String(), user.Email, user.Username, user.Password)
 	if err != nil {
 		return err
 	}
-	user.ID = userID
+	user.ID = userID.String()
 	return nil
 }
 
-func (r *UserRepository) GetUserByID(id int64) (*User, error) {
+func (r *UserRepository) GetUserByID(id string) (*User, error) {
 	query := "SELECT id, email, username, password FROM users WHERE id = ?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
@@ -97,4 +100,22 @@ func (r *UserRepository) GetUserByUsername(username string) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) UserExists(username, email string) (bool, error) {
+	var count int
+	query := `
+    SELECT COUNT(*) FROM users 
+    WHERE username = ? OR email = ?
+    `
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return false, err
+	}
+	err = stmt.QueryRow(username, email).Scan(&count)
+	fmt.Println(username, email, count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

@@ -1,6 +1,11 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
 
-func RegisterHandler(rw *http.ResponseWriter, r http.Request) {
+	"forum/config"
+)
+
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	config.TMPL.Render(w, "register.html", nil)
 }
