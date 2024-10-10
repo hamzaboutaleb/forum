@@ -20,3 +20,17 @@ func CreateUserTable() error {
 	}
 	return nil
 }
+
+func CreateSessionTable() error {
+	db := config.DB
+	query := `CREATE TABLE IF NOT EXISTS sessions (
+		id TEXT PRIMARY KEY,
+		username TEXT,
+		expires_at DATETIME
+	)`
+	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}

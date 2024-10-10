@@ -11,5 +11,6 @@ func InitServices() error {
 	if err != nil {
 		return err
 	}
+	config.NewSessionManager()
 	return nil
 }

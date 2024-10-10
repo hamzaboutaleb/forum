@@ -7,5 +7,9 @@ func InitTables() error {
 	if err != nil {
 		return err
 	}
+	err = database.CreateSessionTable()
+	if err != nil {
+		return err
+	}
 	return nil
 }

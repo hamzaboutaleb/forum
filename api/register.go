@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"forum/models"
@@ -16,9 +15,12 @@ func RegisterApi(w http.ResponseWriter, r *http.Request) {
 	}
 	var user models.User
 	err := utils.ReadJSON(r, &user)
-	fmt.Println(user.Password)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, "Invalid input", nil)
+		return
+	}
+	if !utils.IsValidEmail(user.Email) {
+		utils.WriteJSON(w, http.StatusBadRequest, "Invalid Email", nil)
 		return
 	}
 	err = services.RegisterUser(&user)
