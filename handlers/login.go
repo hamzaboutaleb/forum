@@ -5,6 +5,7 @@ import (
 
 	"forum/config"
 	"forum/services"
+	"forum/utils"
 )
 
 type pageData struct {
@@ -13,6 +14,8 @@ type pageData struct {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	utils.RedirectIsAuth(w, r)
+
 	page := pageData{
 		Method: "POST",
 	}
