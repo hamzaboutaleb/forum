@@ -46,6 +46,7 @@ func createPostTable() error {
 	query := `
     CREATE TABLE IF NOT EXISTS posts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT,
         userId INTEGER NOT NULL,
         content TEXT NOT NULL,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP

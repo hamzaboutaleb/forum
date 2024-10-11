@@ -21,16 +21,22 @@ export default class PostController {
       this.writeError("All fields must be completed.");
       return;
     }
-    const response = await fetch("/api/post", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    let responseData = await response.json();
-    if (response.ok) {
-      this.writeSucc(responseData.message);
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
+    try {
+      const response = await fetch("/api/post", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      let responseData = await response.json();
+      if (response.ok) {
+        this.writeSucc(responseData.message);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      } else {
+        this.writeSucc(responseData.message);
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
   writeError(msg) {
