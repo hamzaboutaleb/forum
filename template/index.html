@@ -16,10 +16,10 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <title>{{block "title" .}} {{end}}</title>
+    <title>{{.Title}}</title>
   </head>
   <body>
-    {{template "header.html"}}
+    {{template "header.html" .}}
     <div class="container">
       <main id="main">
         <aside id="sidebar">
@@ -34,25 +34,44 @@
                 name="query"
               />
             </form>
+            {{if .User}}
             <div class="personal-filter flex justify-between">
               <a class="active" href="#">Liked Posts</a>
               <a class="active" href="#">All Posts</a>
               <a href="#">My Posts</a>
             </div>
+            {{end}}
           </div>
         </aside>
 
         <section id="posts" class="flex flex-colum gap-4">
-          <form action="">
+          {{if .User}} {{if .Data }} {{if .Data.Error}}
+          <div class="error">{{.Data.Message}}</div>
+          {{else}}
+          <div class="success">{{.Data.Message}}</div>
+          {{end}} {{end}}
+          <form class="flex flex-colum gap-3" action="/" method="post">
+            <input
+              type="text"
+              placeholder="Title"
+              name="title"
+              class="post-content-input"
+            />
             <textarea
               class="post-content-input"
-              name="comment"
+              name="content"
               rows="4"
-              required
+              placeholder="write something"
             ></textarea>
+            <input
+              type="text"
+              placeholder="tags seperated by comma"
+              name="tags"
+              class="post-content-input"
+            />
             <button class="create-post" href="#">Create new post</button>
           </form>
-
+          {{end}}
           <div class="post flex gap-5">
             <div class="like flex flex-colum align-center justify-center gap-1">
               <a class="like-up" href="#"

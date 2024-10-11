@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"forum/config"
 	"forum/models"
 	"forum/services"
 	"forum/utils"
@@ -25,11 +26,11 @@ func RegisterApi(w http.ResponseWriter, r *http.Request) {
 	}
 	err = services.RegisterUser(&user)
 	if err != nil {
-		if err == services.ErrUserOrEmailExist {
-			utils.WriteJSON(w, http.StatusConflict, "Username or Email already used", nil)
+		if err.(*config.CustomError).IsInternal() {
+			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 			return
 		}
-		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+		utils.WriteJSON(w, http.StatusConflict, err.Error(), nil)
 		return
 	}
 	utils.WriteJSON(w, http.StatusCreated, "User registered successfully", user)

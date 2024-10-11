@@ -4,8 +4,22 @@ import (
 	"forum/config"
 )
 
-func CreateUserTable() error {
+func execQuery(query string) error {
 	db := config.DB
+	_, err := db.Exec(query)
+	if err != nil {
+		return config.NewInternalError(err)
+	}
+	return nil
+}
+
+var Tables = []func() error{
+	createPostTable,
+	createUserTable,
+	createSessionTable,
+}
+
+func createUserTable() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS users (
 		id TEXT PRIMARY KEY,
@@ -14,23 +28,27 @@ func CreateUserTable() error {
 		password TEXT NOT NULL
 	);
 	`
-	_, err := db.Exec(query)
-	if err != nil {
-		return err
-	}
-	return nil
+	return execQuery(query)
 }
 
-func CreateSessionTable() error {
-	db := config.DB
+func createSessionTable() error {
 	query := `CREATE TABLE IF NOT EXISTS sessions (
 		id TEXT PRIMARY KEY,
 		username TEXT,
 		expires_at DATETIME
 	)`
-	_, err := db.Exec(query)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return execQuery(query)
+}
+
+func createPostTable() error {
+	query := `
+    CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER NOT NULL,
+        content TEXT NOT NULL,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    );`
+
+	return execQuery(query)
 }

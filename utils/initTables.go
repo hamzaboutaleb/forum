@@ -3,13 +3,12 @@ package utils
 import "forum/database"
 
 func InitTables() error {
-	err := database.CreateUserTable()
-	if err != nil {
-		return err
-	}
-	err = database.CreateSessionTable()
-	if err != nil {
-		return err
+	tablesFn := database.Tables
+
+	for _, fn := range tablesFn {
+		if err := fn(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

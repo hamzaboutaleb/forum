@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"forum/config"
 
@@ -34,16 +33,16 @@ func (r *UserRepository) CreateUser(user *User) error {
 	query := "INSERT INTO users (id, email, username, password) VALUES (?,?,?,?)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return err
+		return config.NewInternalError(err)
 	}
 	defer stmt.Close()
 	userID, err := uuid.NewV7()
 	if err != nil {
-		return err
+		return config.NewInternalError(err)
 	}
 	_, err = stmt.Exec(userID.String(), user.Email, user.Username, user.Password)
 	if err != nil {
-		return err
+		return config.NewInternalError(err)
 	}
 	user.ID = userID.String()
 	return nil
@@ -70,16 +69,16 @@ func (r *UserRepository) GetUserByEmail(email string) (*User, error) {
 	query := "SELECT id, email, username, password FROM users WHERE email = ?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return nil, ErrDB
+		return nil, config.NewInternalError(err)
 	}
 	row := stmt.QueryRow(email)
 
 	var user User
 	if err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, ErrUserNotFound
+			return nil, config.NewError(ErrUserNotFound)
 		}
-		return nil, err
+		return nil, config.NewInternalError(err)
 	}
 	return &user, nil
 }
@@ -88,16 +87,16 @@ func (r *UserRepository) GetUserByUsername(username string) (*User, error) {
 	query := "SELECT id, email, username, password FROM users WHERE username = ?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return nil, ErrDB
+		return nil, config.NewInternalError(err)
 	}
 	row := stmt.QueryRow(username)
 
 	var user User
 	if err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, ErrUserNotFound
+			return nil, config.NewError(ErrUserNotFound)
 		}
-		return nil, err
+		return nil, config.NewInternalError(err)
 	}
 	return &user, nil
 }
@@ -110,12 +109,14 @@ func (r *UserRepository) UserExists(username, email string) (bool, error) {
     `
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return false, err
+		return false, config.NewInternalError(err)
 	}
 	err = stmt.QueryRow(username, email).Scan(&count)
-	fmt.Println(username, email, count)
 	if err != nil {
-		return false, err
+		if err == sql.ErrNoRows {
+			return false, config.NewError(ErrUserNotFound)
+		}
+		return false, config.NewInternalError(err)
 	}
 	return count > 0, nil
 }

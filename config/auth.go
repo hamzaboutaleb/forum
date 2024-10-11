@@ -1,6 +1,9 @@
 package config
 
-func IsAuth(id string) bool {
-	_, err := SESSION.GetSession(id)
-	return err == nil
+func IsAuth(id string) *Session {
+	session, err := SESSION.GetSession(id)
+	if err != nil {
+		return nil
+	}
+	return session
 }

@@ -14,8 +14,11 @@
   padding: 12px 0;
   margin-bottom: 24px;
   .logo {
+    a {
+      color: #7c5501;
+      text-decoration: none;
+    }
     font-size: 24px;
-    color: #7c5501;
     font-weight: 600;
     letter-spacing: -0.3px;
     text-transform: uppercase;

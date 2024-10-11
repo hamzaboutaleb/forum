@@ -15,26 +15,35 @@ type pageData struct {
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.RedirectIsAuth(w, r)
+	switch r.Method {
+	case http.MethodGet:
+		getLogin(w)
+	case http.MethodPost:
+		postLogin(w, r)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
+}
 
+func getLogin(w http.ResponseWriter) {
+	page := pageData{
+		Method: "GET",
+	}
+	config.TMPL.Render(w, "login.html", page)
+}
+
+func postLogin(w http.ResponseWriter, r *http.Request) {
 	page := pageData{
 		Method: "POST",
 	}
-	if r.Method == http.MethodGet {
-		page.Method = "GET"
-		config.TMPL.Render(w, "login.html", page)
-		return
-	}
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	if err := services.LoginUser(username, password); err != nil {
 		// TODO make page
 		page.Error = err.Error()
+		config.TMPL.Render(w, "login.html", page)
+		return
 	}
 	session, err := config.SESSION.CreateSession(username)
 	if err != nil {

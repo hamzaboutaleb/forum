@@ -13,7 +13,7 @@ type TemplateManager struct {
 func NewTemplateManager() error {
 	tmpl, err := template.ParseGlob(filepath.Join(TEMPLATE_DIR, "*.html"))
 	if err != nil {
-		return err
+		return NewInternalError(err)
 	}
 	TMPL = &TemplateManager{templates: tmpl}
 	return nil
@@ -21,5 +21,6 @@ func NewTemplateManager() error {
 
 func (tm *TemplateManager) Render(w http.ResponseWriter, tmpl string, data interface{}) error {
 	w.Header().Set("Content-Type", "text/html")
-	return tm.templates.ExecuteTemplate(w, tmpl, data)
+	err := tm.templates.ExecuteTemplate(w, tmpl, data)
+	return NewInternalError(err)
 }

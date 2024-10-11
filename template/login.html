@@ -16,6 +16,7 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+
     <title>login</title>
   </head>
   <body>
@@ -25,6 +26,7 @@
       {{if eq .Method "POST"}} {{if .Error}}
       <div class="error">{{.Error}}</div>
       {{else}}
+      <meta http-equiv="refresh" content="1; URL=/" />
       <div class="success">Login successful</div>
       {{end}} {{end}}
       <input type="text" placeholder="Username" name="username" />
