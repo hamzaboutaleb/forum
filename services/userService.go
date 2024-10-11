@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrInvalidUserPass  = errors.New("invalid username or password")
-	ErrUserOrEmailExist = errors.New("username or email already used")
-	ErrFieldsEmpty      = errors.New("all fields must be completed")
+	errInvalidUserPass  = errors.New("invalid username or password")
+	errUserOrEmailExist = errors.New("username or email already used")
+	errFieldsEmpty      = errors.New("all fields must be completed")
 )
 
 func RegisterUser(user *models.User) error {
@@ -24,7 +24,7 @@ func RegisterUser(user *models.User) error {
 		return err
 	}
 	if isUserExist {
-		return config.NewError(ErrUserOrEmailExist)
+		return config.NewError(errUserOrEmailExist)
 	}
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
@@ -34,17 +34,17 @@ func RegisterUser(user *models.User) error {
 	return userRepo.CreateUser(user)
 }
 
-func LoginUser(username, password string) error {
+func LoginUser(username, password string) (*models.User, error) {
 	if len(strings.TrimSpace(username)) == 0 || len(strings.TrimSpace(password)) == 0 {
-		return config.NewError(ErrFieldsEmpty)
+		return nil, config.NewError(errFieldsEmpty)
 	}
 	userRepo := models.NewUserRepository()
 	user, err := userRepo.GetUserByUsername(username)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if utils.CheckPassword(user.Password, password) != nil {
-		return config.NewError(ErrInvalidUserPass)
+		return nil, config.NewError(errInvalidUserPass)
 	}
-	return nil
+	return user, nil
 }

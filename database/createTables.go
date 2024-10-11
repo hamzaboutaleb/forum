@@ -35,6 +35,7 @@ func createSessionTable() error {
 	query := `CREATE TABLE IF NOT EXISTS sessions (
 		id TEXT PRIMARY KEY,
 		username TEXT,
+		userId TEXT,
 		expires_at DATETIME
 	)`
 

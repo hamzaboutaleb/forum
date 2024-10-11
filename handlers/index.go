@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -31,7 +30,6 @@ func indexGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("post")
 	r.ParseForm()
 	session := utils.GeTCookie("session", r)
 	page := NewPageStruct("forum", session, nil)

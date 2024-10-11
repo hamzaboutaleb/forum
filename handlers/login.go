@@ -39,13 +39,15 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	if err := services.LoginUser(username, password); err != nil {
+	user, err := services.LoginUser(username, password)
+	if err != nil {
 		// TODO make page
 		page.Error = err.Error()
 		config.TMPL.Render(w, "login.html", page)
 		return
 	}
-	session, err := config.SESSION.CreateSession(username)
+
+	session, err := config.SESSION.CreateSession(user.Username, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

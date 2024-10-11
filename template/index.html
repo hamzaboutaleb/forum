@@ -16,6 +16,11 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+    <script type="module">
+      import PostController from "/static/js/PostController.js";
+      let postController = new PostController("#new_post_form", ".box");
+      console.log(postController);
+    </script>
     <title>{{.Title}}</title>
   </head>
   <body>
@@ -43,14 +48,15 @@
             {{end}}
           </div>
         </aside>
-
+        {{if .User}}
         <section id="posts" class="flex flex-colum gap-4">
-          {{if .User}} {{if .Data }} {{if .Data.Error}}
-          <div class="error">{{.Data.Message}}</div>
-          {{else}}
-          <div class="success">{{.Data.Message}}</div>
-          {{end}} {{end}}
-          <form class="flex flex-colum gap-3" action="/" method="post">
+          <form
+            id="new_post_form"
+            class="flex flex-colum gap-3"
+            action="/"
+            method="post"
+          >
+            <div class="box"></div>
             <input
               type="text"
               placeholder="Title"

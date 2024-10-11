@@ -13,6 +13,7 @@ var ErrExpiredSession = errors.New("session is expired")
 type Session struct {
 	ID        string
 	Username  string
+	UserId    string
 	ExpiresAt time.Time
 }
 
@@ -26,8 +27,8 @@ func NewSessionManager() {
 	}
 }
 
-func (s *SessionManager) CreateSession(username string) (*Session, error) {
-	query := `INSERT INTO sessions (id, username, expires_at) VALUES (?, ?, ?)`
+func (s *SessionManager) CreateSession(username string, userId string) (*Session, error) {
+	query := `INSERT INTO sessions (id, username, userId, expires_at) VALUES (?, ?, ?, ?)`
 	stmt, err := s.db.Prepare(query)
 	if err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func (s *SessionManager) CreateSession(username string) (*Session, error) {
 		return nil, err
 	}
 	expTime := time.Now().Add(SESSION_EXP_TIME * time.Second)
-	stmt.Exec(id.String(), username, expTime)
+	stmt.Exec(id.String(), username, userId, expTime)
 	session, err := s.GetSession(id.String())
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func (s *SessionManager) GetSession(id string) (*Session, error) {
 	var session Session
 
 	row := stmt.QueryRow(id)
-	err = row.Scan(&session.ID, &session.Username, &session.ExpiresAt)
+	err = row.Scan(&session.ID, &session.Username, &session.UserId, &session.ExpiresAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, NewError(err)
