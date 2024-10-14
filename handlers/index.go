@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,8 +12,9 @@ import (
 )
 
 type IndexStruct struct {
-	Posts     []*models.Post
-	PostCount int
+	Posts       []*models.Post
+	TotalPages  int
+	CurrentPage int
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,8 +57,9 @@ func indexGet(w http.ResponseWriter, r *http.Request) {
 	}
 	page := NewPageStruct("forum", session, nil)
 	page.Data = IndexStruct{
-		Posts:     posts,
-		PostCount: count,
+		Posts:       posts,
+		TotalPages:  int(math.Ceil(float64(count) / config.LIMIT_PER_PAGE)),
+		CurrentPage: currPage,
 	}
 	config.TMPL.Render(w, "index.html", page)
 }
@@ -93,6 +95,5 @@ func getPosts(currPage, limit int) ([]*models.Post, error) {
 		}
 		post.Tags = tags
 	}
-	fmt.Println(posts)
 	return posts, nil
 }

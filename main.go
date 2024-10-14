@@ -24,6 +24,7 @@ func main() {
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/api/register", api.RegisterApi)
 	http.HandleFunc("/api/post", api.PostApi)
+	http.HandleFunc("/api/react", api.ReactToPostHandler)
 	fmt.Printf("Server running on http://localhost%v", config.ADDRS)
 	err := http.ListenAndServe(config.ADDRS, nil)
 	if err != nil {

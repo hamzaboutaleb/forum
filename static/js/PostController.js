@@ -2,7 +2,12 @@ export default class PostController {
   formEl;
   boxEl;
   constructor(form, box) {
+    this.addEvent(form, box);
+  }
+
+  addEvent(form, box) {
     this.formEl = document.querySelector(form);
+    if (!this.formEl) return;
     this.boxEl = this.formEl.querySelector(box);
     this.formEl.addEventListener("submit", (e) => {
       e.preventDefault();

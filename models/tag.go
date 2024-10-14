@@ -92,7 +92,6 @@ func (r *TagRepository) GetTagsForPost(postId int64) ([]string, error) {
 	}
 	defer stmt.Close()
 
-	// Execute the query
 	rows, err := stmt.Query(postId)
 	if err != nil {
 		return nil, err
@@ -100,7 +99,6 @@ func (r *TagRepository) GetTagsForPost(postId int64) ([]string, error) {
 	defer rows.Close()
 
 	var tags []string
-	// Loop through the rows and collect the tag names
 	for rows.Next() {
 		var tagName string
 		if err := rows.Scan(&tagName); err != nil {
@@ -113,7 +111,6 @@ func (r *TagRepository) GetTagsForPost(postId int64) ([]string, error) {
 }
 
 func (r *TagRepository) LinkTagsToPost(postId int64, tagNames []string) error {
-	// Prepare the statement for checking if a tag exists
 	selectStmt, err := r.db.Prepare("SELECT id FROM tags WHERE name = ?")
 	if err != nil {
 		return err

@@ -5,8 +5,6 @@ import (
 	"errors"
 
 	"forum/config"
-
-	"github.com/gofrs/uuid/v5"
 )
 
 var (
@@ -15,7 +13,7 @@ var (
 )
 
 type User struct {
-	ID       string `json:"id"`
+	ID       int64  `json:"id"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -30,21 +28,20 @@ func NewUserRepository() *UserRepository {
 }
 
 func (r *UserRepository) CreateUser(user *User) error {
-	query := "INSERT INTO users (id, email, username, password) VALUES (?,?,?,?)"
+	query := "INSERT INTO users (email, username, password) VALUES (?,?,?)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return config.NewInternalError(err)
 	}
 	defer stmt.Close()
-	userID, err := uuid.NewV7()
 	if err != nil {
 		return config.NewInternalError(err)
 	}
-	_, err = stmt.Exec(userID.String(), user.Email, user.Username, user.Password)
+	result, err := stmt.Exec(user.Email, user.Username, user.Password)
 	if err != nil {
 		return config.NewInternalError(err)
 	}
-	user.ID = userID.String()
+	user.ID, _ = result.LastInsertId()
 	return nil
 }
 

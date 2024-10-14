@@ -9,3 +9,7 @@ func GeTCookie(name string, r *http.Request) string {
 	}
 	return session.Value
 }
+
+func GetSessionCookie(r *http.Request) string {
+	return GeTCookie("session", r)
+}

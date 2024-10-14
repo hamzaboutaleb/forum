@@ -61,19 +61,18 @@ func (r *PostRepository) GetPostPerPage(page int, limit int) ([]*Post, error) {
     p.content,
     p.createdAt,
     u.username,
-    COUNT(pl.id) AS likeCount
+	COALESCE(SUM(pl.isLike), 0) AS likeCount
 	FROM 
     	posts p
 	LEFT JOIN 
    		users u ON p.userId = u.id 
 	LEFT JOIN 
-    	post_likes pl ON p.id = pl.postId
+    	post_reactions pl ON p.id = pl.postId
 	GROUP BY 
     	p.id, u.id
 	ORDER BY 
     	p.createdAt DESC
 	LIMIT ? OFFSET ?`
-	//"SELECT * FROM posts ORDER BY createdAt desc LIMIT ? OFFSET ? "
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return nil, config.NewInternalError(err)
@@ -104,13 +103,14 @@ func (r *PostRepository) FindAll() ([]Post, error) {
     p.content,
     p.createdAt,
     u.username,
-    COUNT(pl.id) AS likeCount
+	u.id
+    SUM(pr.id) AS likeCount
 	FROM 
     	posts p
 	LEFT JOIN 
    		users u ON p.userId = u.id 
 	LEFT JOIN 
-    	post_likes pl ON p.id = pl.postId
+    	post_reactions pr ON p.id = pr.postId
 	GROUP BY 
     	p.id, u.id
 	ORDER BY 
@@ -127,7 +127,7 @@ func (r *PostRepository) FindAll() ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var post Post
-		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.Username, &post.Likes); err != nil {
+		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.Username, &post.UserID, &post.Likes); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, config.NewError(err)
 			}
@@ -146,6 +146,19 @@ func (r *PostRepository) FindAll() ([]Post, error) {
 func (r *PostRepository) Count() (int, error) {
 	var count int
 	err := r.db.QueryRow(`SELECT COUNT(*) FROM posts`).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *PostRepository) IsPostExist(id int64) (int, error) {
+	var count int
+	stmt, err := r.db.Prepare(`SELECT COUNT(*) FROM posts WHERE id = ?`)
+	if err != nil {
+		return 0, err
+	}
+	err = stmt.QueryRow(id).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

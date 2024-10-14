@@ -27,7 +27,7 @@ var Tables = []func() error{
 func createUserTable() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS users (
-		id TEXT PRIMARY KEY,
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT NOT NULL UNIQUE,
 		username TEXT NOT NULL UNIQUE,
 		password TEXT NOT NULL
@@ -62,14 +62,14 @@ func createPostTable() error {
 
 func createPostLikeTable() error {
 	query := `
-    CREATE TABLE IF NOT EXISTS post_likes (
+    CREATE TABLE IF NOT EXISTS post_reactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    postId INTEGER,
-    userId INTEGER,
+    userId TEXT NOT NULL,
+    postId INTEGER NOT NULL,
+    isLike INT NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);`
+    UNIQUE(userId, postId)
+	);`
 
 	return execQuery(query)
 }

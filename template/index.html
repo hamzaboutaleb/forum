@@ -18,8 +18,9 @@
     />
     <script type="module">
       import PostController from "/static/js/PostController.js";
+      import { ReactHandler } from "/static/js/React.js";
       let postController = new PostController("#new_post_form", ".box");
-      console.log(postController);
+      ReactHandler();
     </script>
     <title>{{.Title}}</title>
   </head>
@@ -79,7 +80,7 @@
             <button class="create-post" href="#">Create new post</button>
           </form>
           {{end}} {{range .Data.Posts}}
-          <div class="post flex gap-5">
+          <div data-id="{{.ID}}" class="post flex gap-5">
             <div class="like flex flex-colum align-center justify-center gap-1">
               <a class="like-up" href="#"
                 ><i class="fa-solid fa-chevron-up"></i
@@ -107,12 +108,12 @@
             </div>
           </div>
           {{end}}
-
           <ul class="pagination flex gap-4 m-auto">
-            <li><a href="#">1</a></li>
-            <li><a href="#" class="selected">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
+            {{if gt .Data.CurrentPage 1}}
+            <a href="?page={{sub .Data.CurrentPage 1}}">Previous</a>
+            {{end}} {{if lt .Data.CurrentPage .Data.TotalPages}}
+            <a href="?page={{add .Data.CurrentPage 1}}">Next</a>
+            {{end}}
           </ul>
         </section>
       </main>
