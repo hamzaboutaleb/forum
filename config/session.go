@@ -28,7 +28,7 @@ func NewSessionManager() {
 }
 
 func (s *SessionManager) CreateSession(username string, userId string) (*Session, error) {
-	query := `INSERT INTO sessions (id, username, userId, expires_at) VALUES (?, ?, ?, ?)`
+	query := `INSERT INTO sessions (id, username, userId, expiresAt) VALUES (?, ?, ?, ?)`
 	stmt, err := s.db.Prepare(query)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -52,9 +53,27 @@ func (r *PostRepository) Create(post *Post) error {
 	return nil
 }
 
-func (r *PostRepository) GetPostPerPage(page int, limit int) (*[]Post, error) {
+func (r *PostRepository) GetPostPerPage(page int, limit int) ([]*Post, error) {
 	offset := (page - 1) * limit
-	query := "SELECT * FROM posts ORDER BY createdAt desc LIMIT ? OFFSET ? "
+	query := `SELECT 
+    p.id,
+    p.title,
+    p.content,
+    p.createdAt,
+    u.username,
+    COUNT(pl.id) AS likeCount
+	FROM 
+    	posts p
+	LEFT JOIN 
+   		users u ON p.userId = u.id 
+	LEFT JOIN 
+    	post_likes pl ON p.id = pl.postId
+	GROUP BY 
+    	p.id, u.id
+	ORDER BY 
+    	p.createdAt DESC
+	LIMIT ? OFFSET ?`
+	//"SELECT * FROM posts ORDER BY createdAt desc LIMIT ? OFFSET ? "
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return nil, config.NewInternalError(err)
@@ -63,23 +82,39 @@ func (r *PostRepository) GetPostPerPage(page int, limit int) (*[]Post, error) {
 	if err != nil {
 		return nil, config.NewError(err)
 	}
-	var posts []Post
+	var posts []*Post
 	for rows.Next() {
 		var post Post
-		if err := rows.Scan(&post.ID, &post.Title, &post.UserID, &post.Content, &post.CreatedAt); err != nil {
+		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.Username, &post.Likes); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, config.NewError(err)
 			}
 			return nil, config.NewInternalError(err)
 		}
-		posts = append(posts, post)
+		posts = append(posts, &post)
 	}
 	defer stmt.Close()
-	return &posts, nil
+	return posts, nil
 }
 
 func (r *PostRepository) FindAll() ([]Post, error) {
-	query := "SELECT * FROM posts"
+	query := `SELECT 
+    p.id,
+    p.title,
+    p.content,
+    p.createdAt,
+    u.username,
+    COUNT(pl.id) AS likeCount
+	FROM 
+    	posts p
+	LEFT JOIN 
+   		users u ON p.userId = u.id 
+	LEFT JOIN 
+    	post_likes pl ON p.id = pl.postId
+	GROUP BY 
+    	p.id, u.id
+	ORDER BY 
+    	p.createdAt DESC`
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return nil, config.NewInternalError(err)
@@ -92,7 +127,7 @@ func (r *PostRepository) FindAll() ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var post Post
-		if err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt); err != nil {
+		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.Username, &post.Likes); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, config.NewError(err)
 			}
@@ -104,6 +139,7 @@ func (r *PostRepository) FindAll() ([]Post, error) {
 	if err = rows.Err(); err != nil {
 		return nil, config.NewInternalError(err)
 	}
+	fmt.Println(posts[0])
 	return posts, nil
 }
 

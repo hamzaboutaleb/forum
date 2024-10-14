@@ -48,8 +48,9 @@
             {{end}}
           </div>
         </aside>
-        {{if .User}}
+
         <section id="posts" class="flex flex-colum gap-4">
+          {{if .User}}
           <form
             id="new_post_form"
             class="flex flex-colum gap-3"
@@ -83,7 +84,7 @@
               <a class="like-up" href="#"
                 ><i class="fa-solid fa-chevron-up"></i
               ></a>
-              <span class="like-count">15</span>
+              <span class="like-count">{{.Likes}}</span>
               <a class="like-down" href="#"
                 ><i class="fa-solid fa-chevron-down"></i
               ></a>
@@ -94,14 +95,12 @@
                 <i class="fa-regular fa-calendar-days"></i>
                 <span>{{.CreatedAt.Format "2006 Jan 02"}}</span>
                 <p>
-                  By <span><a href="#">hboutale</a></span>
+                  By <span><a href="#">{{.Username}}</a></span>
                 </p>
               </div>
               <div class="tags flex gap-2 mb-2">
                 {{range .Tags}}
                 <a href="#" class="tag">{{.}}</a>
-                <a href="#" class="tag">Technology</a>
-                <a href="#" class="tag">Bug</a>
                 {{end}}
               </div>
               <p class="post-content">{{.Content}}</p>

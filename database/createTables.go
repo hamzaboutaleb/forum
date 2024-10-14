@@ -17,6 +17,11 @@ var Tables = []func() error{
 	createPostTable,
 	createUserTable,
 	createSessionTable,
+	createPostLikeTable,
+	createCommentTable,
+	createCommentLikeTable,
+	createTagsTable,
+	createPostTagsTable,
 }
 
 func createUserTable() error {
@@ -36,7 +41,7 @@ func createSessionTable() error {
 		id TEXT PRIMARY KEY,
 		username TEXT,
 		userId TEXT,
-		expires_at DATETIME
+		expiresAt DATETIME
 	)`
 
 	return execQuery(query)
@@ -52,5 +57,66 @@ func createPostTable() error {
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );`
 
+	return execQuery(query)
+}
+
+func createPostLikeTable() error {
+	query := `
+    CREATE TABLE IF NOT EXISTS post_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    postId INTEGER,
+    userId INTEGER,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);`
+
+	return execQuery(query)
+}
+
+func createCommentTable() error {
+	query := `
+    CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    postId INTEGER,
+    userId INTEGER,
+    comment TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE
+)`
+	return execQuery(query)
+}
+
+func createCommentLikeTable() error {
+	query := `
+    CREATE TABLE IF NOT EXISTS comment_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    commentId INTEGER,
+    userId INTEGER,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (commentId) REFERENCES comments(id) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);`
+	return execQuery(query)
+}
+
+func createTagsTable() error {
+	query := `
+    CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE 
+);`
+	return execQuery(query)
+}
+
+func createPostTagsTable() error {
+	query := `
+    CREATE TABLE IF NOT EXISTS post_tags (
+    postId INTEGER,
+    tagId INTEGER,
+    PRIMARY KEY (postId, tagId),
+    FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE
+);`
 	return execQuery(query)
 }

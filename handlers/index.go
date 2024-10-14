@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,7 +12,7 @@ import (
 )
 
 type IndexStruct struct {
-	Posts     []models.Post
+	Posts     []*models.Post
 	PostCount int
 }
 
@@ -43,7 +44,7 @@ func indexGet(w http.ResponseWriter, r *http.Request) {
 	}
 	session := utils.GeTCookie("session", r)
 	postRep := models.NewPostRepository()
-	post, err := postRep.GetPostPerPage(currPage, limit)
+	posts, err := getPosts(currPage, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -55,7 +56,7 @@ func indexGet(w http.ResponseWriter, r *http.Request) {
 	}
 	page := NewPageStruct("forum", session, nil)
 	page.Data = IndexStruct{
-		Posts:     *post,
+		Posts:     posts,
 		PostCount: count,
 	}
 	config.TMPL.Render(w, "index.html", page)
@@ -76,4 +77,22 @@ func indexPost(w http.ResponseWriter, r *http.Request) {
 	page.Data = response
 	// TODO chekc tags and insert them
 	config.TMPL.Render(w, "index.html", page)
+}
+
+func getPosts(currPage, limit int) ([]*models.Post, error) {
+	postRep := models.NewPostRepository()
+	tagsRepo := models.NewTagRepository()
+	posts, err := postRep.GetPostPerPage(currPage, limit)
+	if err != nil {
+		return nil, err
+	}
+	for _, post := range posts {
+		tags, err := tagsRepo.GetTagsForPost(post.ID)
+		if err != nil {
+			return nil, err
+		}
+		post.Tags = tags
+	}
+	fmt.Println(posts)
+	return posts, nil
 }
