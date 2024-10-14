@@ -8,6 +8,7 @@ async function reactToPost(postId, isLike, countEl) {
       body: JSON.stringify({
         postId,
         isLike,
+        action: "react",
       }),
     });
 
@@ -23,23 +24,41 @@ async function reactToPost(postId, isLike, countEl) {
     console.log(error);
   }
 }
+async function getLikes(postId, el) {
+  try {
+    const response = await fetch(`/api/react?postId=${postId}`);
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${data.message}`);
+    }
+    console.log(data);
+    el.textContent = `${data.data}`;
+  } catch (error) {
+    console.error("Error fetching likes:", error);
+  }
+}
 
 export function ReactHandler() {
   let posts = document.querySelectorAll(".post");
 
   posts.forEach((post) => {
-    post.addEventListener("click", (e) => {
+    post.addEventListener("click", async (e) => {
       let countEl = post.querySelector(".like-count");
       const upLike = e.target.closest(".like-up");
       if (upLike) {
         e.preventDefault();
-        reactToPost(+post.dataset.id, 1, countEl);
+        reactToPost(+post.dataset.id, 1, countEl).then(() =>
+          getLikes(+post.dataset.id, countEl)
+        );
         return;
       }
       const downLike = e.target.closest(".like-down");
       if (downLike) {
         e.preventDefault();
-        reactToPost(+post.dataset.id, -1, countEl);
+        reactToPost(+post.dataset.id, -1, countEl).then(() =>
+          getLikes(+post.dataset.id, countEl)
+        );
         return;
       }
     });

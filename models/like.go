@@ -54,3 +54,18 @@ func (r *LikeRepository) IsReactionExists(like *Like) (bool, int, error) {
 
 	return exists, isLike, nil
 }
+
+func (r *LikeRepository) CountLikes(postId int64) (int, error) {
+	stmt, err := r.db.Prepare("SELECT SUM(isLike) FROM post_reactions WHERE postId = ?")
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close() 
+
+	var likes int
+	err = stmt.QueryRow(postId).Scan(&likes)
+	if err != nil {
+		return 0, err
+	}
+	return likes, nil
+}
