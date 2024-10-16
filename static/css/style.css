@@ -110,6 +110,7 @@
   }
   .like-up {
     color: gray;
+    text-decoration: none;
     &:hover {
       color: #d66228;
     }

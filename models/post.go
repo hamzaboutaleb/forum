@@ -12,7 +12,7 @@ import (
 type Post struct {
 	ID        int64     `json:"id"`
 	Title     string    `json:"title"`
-	UserID    string    `json:"userId"`
+	UserID    int64     `json:"userId"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
 	Tags      []string  `json:"tags"`
@@ -163,4 +163,19 @@ func (r *PostRepository) IsPostExist(id int64) (int, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *PostRepository) GetPostById(id int64) (*Post, error) {
+	query := `SELECT * FROM posts WHERE id = ?`
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return nil, config.NewInternalError(err)
+	}
+	var post Post
+	row := stmt.QueryRow(id)
+	err = row.Scan(&post.ID, &post.Title, &post.UserID, &post.Content, &post.CreatedAt)
+	if err != nil {
+		return nil, config.NewInternalError(err)
+	}
+	return &post, nil
 }

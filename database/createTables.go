@@ -89,14 +89,14 @@ func createCommentTable() error {
 
 func createCommentLikeTable() error {
 	query := `
-    CREATE TABLE IF NOT EXISTS comment_likes (
+    CREATE TABLE IF NOT EXISTS comment_reactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    commentId INTEGER,
-    userId INTEGER,
+    userId TEXT NOT NULL,
+    commentId INTEGER NOT NULL,
+    isLike INT NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (commentId) REFERENCES comments(id) ON DELETE CASCADE,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);`
+    UNIQUE(userId, commentId)
+	);`
 	return execQuery(query)
 }
 

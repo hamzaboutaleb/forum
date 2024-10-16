@@ -7,10 +7,10 @@ import (
 )
 
 type Like struct {
-	ID     int64  `json:"id"`
-	UserID string `json:"userId"`
-	PostID int64  `json:"postid"`
-	IsLike int    `json:"isLike"`
+	ID     int64 `json:"id"`
+	UserID int64 `json:"userId"`
+	PostID int64 `json:"postid"`
+	IsLike int   `json:"isLike"`
 }
 
 type LikeRepository struct {
@@ -60,7 +60,7 @@ func (r *LikeRepository) CountLikes(postId int64) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer stmt.Close() 
+	defer stmt.Close()
 
 	var likes int
 	err = stmt.QueryRow(postId).Scan(&likes)

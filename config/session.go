@@ -13,7 +13,7 @@ var ErrExpiredSession = errors.New("session is expired")
 type Session struct {
 	ID        string
 	Username  string
-	UserId    string
+	UserId    int64
 	ExpiresAt time.Time
 }
 

@@ -7,8 +7,8 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400;600;900&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="utils.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/utils.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
@@ -16,99 +16,49 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <title>Document</title>
+    <title>{{.Title}}</title>
+    <script type="module">
+      import { handleCommentForm } from "/static/js/comment.js";
+      handleCommentForm("commentForm");
+    </script>
   </head>
   <body>
-    <header id="header">
-      <div class="container flex align-center justify-between">
-        <div class="logo">Forum</div>
-        <ul class="header-links flex gap-2">
-          <li><a class="primary-link" href="#">Login</a></li>
-          <li><a class="primary-link" href="#">Register</a></li>
-        </ul>
-      </div>
-    </header>
-    <!-- <header id="header">
-      <div class="container flex align-center justify-between">
-        <div class="logo">Forum</div>
-        <div class="user-data flex gap-2 align-center">
-          <span class="user-photo flex align-center justify-center">h</span>
-          <span class="user-name">hboutale</span>
-        </div>
-      </div>
-    </header> -->
+    {{template "header.html" .}}
     <article id="post">
-      <h2 class="post-title">Understanding the Basics of Web Development</h2>
-      <p class="post-content">
-        Web development is an essential skill in today’s digital age. It
-        involves creating and maintaining websites and applications for the
-        internet. This post will cover the fundamental concepts of web
-        development. What is Web Development? Web development refers to the
-        tasks associated with developing websites for hosting via intranet or
-        internet. The web development process includes: Web design Web content
-        development Client-side/server-side scripting Network security
-        configuration Types of Web Development There are three main types of web
-        development: Front-End Development: This involves everything that users
-        see and interact with on a website. It includes HTML, CSS, and
-        JavaScript. Back-End Development: This is the server-side of
-        development, which includes databases and server logic. Full-Stack
-        Development: A combination of both front-end and back-end development,
-        full-stack developers are proficient in both areas. Conclusion
-        Understanding these basics can help you navigate the world of web
-        development more effectively. Whether you’re looking to build your own
-        website or pursue a career in tech, these concepts are foundational to
-        your success.
-      </p>
+      <h2 class="post-title">{{.Data.Post.Title}}</h2>
+      <p class="post-content">{{.Data.Post.Content}}</p>
 
       <section class="comments">
-        <form class="flex flex-colum gap-3" action="#" method="post">
+        <form
+          id="commentForm"
+          data-postId="{{.Data.Post.ID}}"
+          class="flex flex-colum gap-3"
+          action="#"
+          method="post"
+        >
           <h4>Leave a Comment</h4>
           <textarea id="comment" name="comment" rows="4" required></textarea>
           <button type="submit">Comment</button>
         </form>
         <h3>Comments</h3>
-        <div class="comment">
+        {{range .Data.Comments}}
+        <div data-id="{{.ID}}" class="comment">
           <p class="comment-info">
-            <strong>John Doe</strong> <em>October 2, 2023 at 3:15 PM</em>
+            <strong>{{.Username}}</strong>
+            <em>{{.CreatedAt.Format "2006 Jan 02"}}</em>
           </p>
-          <p class="commnet-content">
-            This is a great article! I learned a lot about web development.
-          </p>
+          <p class="commnet-content">{{.Comment}}</p>
           <div class="comment-actions flex align-center">
-            <button class="like-btn">
-              <i class="fa-solid fa-heart"></i>
+            <button class="like-up">
+              <i class="fa-solid fa-chevron-up"></i>
             </button>
-            <span class="like-count">0</span>
+            <span class="like-count">{{.Likes}}</span>
+            <button class="like-down">
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
           </div>
         </div>
-        <div class="comment">
-          <p class="comment-info">
-            <strong>John Doe</strong> <em>October 2, 2023 at 3:15 PM</em>
-          </p>
-          <p class="commnet-content">
-            This is a great article! I learned a lot about web development.
-          </p>
-          <div class="comment-actions flex align-center">
-            <button class="like-btn">
-              <i class="fa-solid fa-heart"></i>
-            </button>
-            <span class="like-count">0</span>
-          </div>
-        </div>
-        <div class="comment">
-          <p class="comment-info">
-            <strong>John Doe</strong> <em>October 2, 2023 at 3:15 PM</em>
-          </p>
-          <p class="commnet-content">
-            This is a great article! I learned a lot about web development.
-          </p>
-          <div class="comment-actions flex align-center">
-            <button class="like-btn">
-              <i class="fa-regular fa-heart"></i>
-            </button>
-            <span class="like-count">0</span>
-          </div>
-        </div>
+        {{end}}
       </section>
     </article>
   </body>
