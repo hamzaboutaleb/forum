@@ -8,6 +8,13 @@ import (
 	"forum/config"
 )
 
+type CommentLike struct {
+	ID        int64 `json:"id"`
+	UserID    int64 `json:"userId"`
+	CommentId int64 `json:"commentId"`
+	IsLike    int   `json:"isLike"`
+}
+
 type Comment struct {
 	ID        int64     `json:"id"`
 	PostID    int64     `json:"postId"`
@@ -22,7 +29,7 @@ type CommentRepository struct {
 	db *sql.DB
 }
 
-func NewCommnetRepository() *CommentRepository {
+func NewCommentRepository() *CommentRepository {
 	return &CommentRepository{db: config.DB}
 }
 
@@ -50,7 +57,7 @@ func (r *CommentRepository) Create(comment *Comment) error {
 func (r *CommentRepository) GetPostComments(postID int64) ([]Comment, error) {
 	query := `SELECT c.id ,c.postId ,c.userId, c.comment ,c.createdAt ,u.username ,COALESCE(SUM(l.isLike), 0) AS likeCount FROM comments c 
 	LEFT JOIN comment_reactions l ON c.id = l.commentId 
-	LEFT JOIN users u ON c.userId = u.id WHERE c.postId = ? GROUP BY c.id HAVING count(c.id) > 0`
+	LEFT JOIN users u ON c.userId = u.id WHERE c.postId = ? GROUP BY c.id HAVING count(c.id) > 0 ORDER BY c.createdAt desc`
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return nil, err
@@ -76,4 +83,18 @@ func (r *CommentRepository) GetPostComments(postID int64) ([]Comment, error) {
 	}
 
 	return comments, nil
+}
+
+func (r *CommentRepository) ReactComment(like CommentLike) error {
+	stmt, err := r.db.Prepare(`
+        INSERT INTO comment_reactions (userId, commentId, isLike)
+        VALUES (?, ?, ?)
+        ON CONFLICT(userId, commentId) DO UPDATE SET isLike = ?`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(like.UserID, like.CommentId, like.IsLike, like.IsLike)
+	return err
 }

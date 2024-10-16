@@ -27,6 +27,7 @@ func main() {
 	http.HandleFunc("/api/post", api.PostApi)
 	http.HandleFunc("/api/react", api.ReactToPostHandler)
 	http.HandleFunc("/api/add/comment", api.AddComment)
+	http.HandleFunc("/api/like/comment", api.HandleLikeComment)
 	fmt.Printf("Server running on http://localhost%v", config.ADDRS)
 	err := http.ListenAndServe(config.ADDRS, nil)
 	if err != nil {

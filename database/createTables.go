@@ -91,7 +91,7 @@ func createCommentLikeTable() error {
 	query := `
     CREATE TABLE IF NOT EXISTS comment_reactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId TEXT NOT NULL,
+    userId INTEGER NOT NULL,
     commentId INTEGER NOT NULL,
     isLike INT NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,

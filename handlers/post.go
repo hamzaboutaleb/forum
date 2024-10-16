@@ -23,7 +23,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(postId)
 	postRepo := models.NewPostRepository()
-	comRepo := models.NewCommnetRepository()
+	comRepo := models.NewCommentRepository()
 	post, err := postRepo.GetPostById(postId)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
