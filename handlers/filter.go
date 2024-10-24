@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -60,7 +59,6 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		postType, err = strconv.Atoi(r.FormValue("options"))
 	}
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}

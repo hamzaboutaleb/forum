@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -21,7 +20,6 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	fmt.Println(postId)
 	postRepo := models.NewPostRepository()
 	comRepo := models.NewCommentRepository()
 	post, err := postRepo.GetPostById(postId)

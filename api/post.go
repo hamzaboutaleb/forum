@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"forum/config"
@@ -21,15 +20,14 @@ func PostApi(w http.ResponseWriter, r *http.Request) {
 
 func handlePost(w http.ResponseWriter, r *http.Request) {
 	sessionId := utils.GeTCookie("session", r)
-	session, err := config.SESSION.GetSession(sessionId)
-	if err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
+	session, _ := config.SESSION.GetSession(sessionId)
+	if session == nil {
+		utils.WriteJSON(w, http.StatusBadRequest, "Unauthorized access", nil)
 		return
 	}
 	var post models.Post
-	err = utils.ReadJSON(r, &post)
+	err := utils.ReadJSON(r, &post)
 	if err != nil {
-		fmt.Println("here")
 		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}

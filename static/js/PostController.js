@@ -31,6 +31,7 @@ export default class PostController {
         method: "POST",
         body: JSON.stringify(data),
       });
+      console.log(response.ok);
       let responseData = await response.json();
       if (response.ok) {
         this.writeSucc(responseData.message);
@@ -38,7 +39,7 @@ export default class PostController {
           window.location.href = "/";
         }, 1000);
       } else {
-        this.writeSucc(responseData.message);
+        this.writeError(responseData.message);
       }
     } catch (error) {
       console.log(error);

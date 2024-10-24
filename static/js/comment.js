@@ -24,7 +24,6 @@ async function addComment(data) {
 
   const responseData = await response.json();
   if (!response.ok) {
-    console.log(responseData);
     throw new Error(responseData.message);
   }
   console.log(responseData);
@@ -36,7 +35,11 @@ export function handleLikeComment(commentsId) {
   let commentsEl = document.getElementById(commentsId);
   if (!commentsEl) return;
   commentsEl.addEventListener("click", (e) => {
-    const { id } = e.target.closest(".comment").dataset;
+    const comment = e.target.closest(".comment");
+    if (!comment) {
+      return;
+    }
+    const { id } = comment.dataset;
     const data = {
       commentId: +id,
     };
@@ -53,25 +56,25 @@ export function handleLikeComment(commentsId) {
 
 export function handleCommentForm(formId) {
   const form = document.getElementById(formId);
-  const domError = new DOMError(form);
   if (!form) return;
+  const domError = new DOMError(form);
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const { postid } = form.dataset;
-    console.log(form.dataset);
     const formData = new FormData(form);
     const data = {
       postId: +postid,
       comment: formData.get("comment"),
     };
-    console.log(data);
     addComment(data)
-      .catch((e) => domError.writeError(e))
       .then((data) => {
         domError.writeSucc(data);
         setTimeout(() => {
           window.location.reload();
         }, 800);
+      })
+      .catch((e) => {
+        domError.writeError(e.message);
       });
   });
 }

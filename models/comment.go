@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"forum/config"
@@ -76,7 +75,6 @@ func (r *CommentRepository) GetPostComments(postID int64) ([]Comment, error) {
 		err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Comment, &comment.CreatedAt,
 			&comment.Username, &comment.Likes)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 		comments = append(comments, comment)

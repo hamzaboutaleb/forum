@@ -1,9 +1,9 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"forum/config"
 	"forum/models"
@@ -13,7 +13,6 @@ import (
 func AddComment(w http.ResponseWriter, r *http.Request) {
 	sessionId := utils.GetSessionCookie(r)
 	session := config.IsAuth(sessionId)
-	fmt.Println("id", sessionId)
 	if session == nil {
 		utils.WriteJSON(w, http.StatusUnauthorized, "Unauthorized", nil)
 		return
@@ -26,19 +25,18 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 	var comment models.Comment
 	comment.UserID = session.UserId
 	err := utils.ReadJSON(r, &comment)
-	fmt.Println(comment.Comment)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 
-	if comment.PostID == 0 || comment.Comment == "" {
-		http.Error(w, "comment is required", http.StatusBadRequest)
+	if comment.PostID == 0 || strings.TrimSpace(comment.Comment) == "" {
+		utils.WriteJSON(w, http.StatusBadRequest, "comment is required", nil)
 		return
 	}
 
 	commRepo := models.NewCommentRepository()
-	commRepo.Create(&comment)
+	err = commRepo.Create(&comment)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		log.Println(err)
@@ -58,7 +56,6 @@ func HandleLikeComment(w http.ResponseWriter, r *http.Request) {
 	var like models.CommentLike
 	like.UserID = session.UserId
 	err := utils.ReadJSON(r, &like)
-	fmt.Println(like.CommentId, like.UserID)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
 		return

@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"forum/config"
 	"forum/models"
@@ -22,6 +23,10 @@ func RegisterApi(w http.ResponseWriter, r *http.Request) {
 	}
 	if !utils.IsValidEmail(user.Email) {
 		utils.WriteJSON(w, http.StatusBadRequest, "Invalid Email", nil)
+		return
+	}
+	if len(strings.TrimSpace(user.Password)) == 0 {
+		utils.WriteJSON(w, http.StatusBadRequest, "Invalid password", nil)
 		return
 	}
 	err = services.RegisterUser(&user)
