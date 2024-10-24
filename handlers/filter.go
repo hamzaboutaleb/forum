@@ -1,0 +1,117 @@
+package handlers
+
+import (
+	"errors"
+	"fmt"
+	"math"
+	"net/http"
+	"strconv"
+
+	"forum/config"
+	c "forum/config"
+	"forum/models"
+	"forum/utils"
+)
+
+const (
+	ALL = iota
+	MY_POST
+	LIKED_POST
+)
+
+func FilterHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		PostFilter(w, r)
+	default:
+	}
+}
+
+func pagination(r *http.Request) (int, int) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	currPage, err := strconv.Atoi(pageStr)
+	if err != nil || currPage < 1 {
+		currPage = 1
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = config.LIMIT_PER_PAGE
+	}
+	return currPage, limit
+}
+
+func PostFilter(w http.ResponseWriter, r *http.Request) {
+	currPage, limit := pagination(r)
+	sessionID := utils.GetSessionCookie(r)
+	session, err := c.SESSION.GetSession(sessionID)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	var userId int64 = -1
+	if c.IsAuth(sessionID) != nil {
+		userId = session.UserId
+	}
+	r.ParseForm()
+	query := r.FormValue("query")
+	postType, err := strconv.Atoi(r.FormValue("options"))
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	postType, err = selectPostType(postType, userId != -1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	postRep := models.NewPostRepository()
+
+	posts, err := postRep.GetPostsBy(query, postType, userId, currPage, limit)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	posts, err = getPostsFilter(posts)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	count, err := postRep.Count()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	page := NewPageStruct("forum", sessionID, nil)
+	page.Data = IndexStruct{
+		Posts:       posts,
+		TotalPages:  int(math.Ceil(float64(count) / config.LIMIT_PER_PAGE)),
+		CurrentPage: currPage,
+	}
+	config.TMPL.Render(w, "index.html", page)
+}
+
+func getPostsFilter(posts []*models.Post) ([]*models.Post, error) {
+	tagsRepo := models.NewTagRepository()
+
+	for _, post := range posts {
+		tags, err := tagsRepo.GetTagsForPost(post.ID)
+		if err != nil {
+			return nil, err
+		}
+		post.Tags = tags
+	}
+	return posts, nil
+}
+
+func selectPostType(value int, isAuth bool) (int, error) {
+	if value < 0 || value > 2 {
+		return 0, errors.New("invalid option")
+	}
+	if isAuth {
+		return value, nil
+	}
+	if value != 0 {
+		return 0, errors.New("bad request, you can't filter with that option")
+	}
+	return 0, nil
+}

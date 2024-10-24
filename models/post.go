@@ -9,6 +9,12 @@ import (
 	"forum/config"
 )
 
+const (
+	ALL = iota
+	MY_POST
+	LIKED_POST
+)
+
 type Post struct {
 	ID        int64     `json:"id"`
 	Title     string    `json:"title"`
@@ -178,4 +184,101 @@ func (r *PostRepository) GetPostById(id int64) (*Post, error) {
 		return nil, config.NewInternalError(err)
 	}
 	return &post, nil
+}
+
+func (r *PostRepository) GetPostsByTag(tag string) ([]Post, error) {
+	queryPostIds := `SELECT p.id, p.title, p.content, p.createdAt, u.username, COALESCE(SUM(pl.isLike), 0) AS likeCount 
+	FROM posts p
+	LEFT JOIN users u ON p.userId = u.id
+	LEFT JOIN post_reactions pr ON p.id = pr.postId
+	GROUP BY p.id 
+	HAVING p.id IN (SELECT postId from post_tags WHERE tagId = (SELECT id FROM tags WHERE name=?))`
+	posts := []Post{}
+
+	stmt, err := r.db.Prepare(queryPostIds)
+	if err != nil {
+		return posts, err
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query(tag)
+	if err != nil {
+		return posts, err
+	}
+	for rows.Next() {
+		var post Post
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.Username, &post.Likes)
+		if err != nil {
+			return posts, err
+		}
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
+
+/*
+*
+HAVING p.id IN (SELECT postId from post_tags WHERE tagId = (SELECT id FROM tags WHERE name="rzarza"))
+--AND p.id IN (SELECT id FROM posts WHERE userId = 1)
+AND p.id IN (SELECT postId FROM post_reactions WHERE userId = 1); --LIKED POSTS
+*/
+func (r *PostRepository) CompleteQuery(query, tag string, queryType int, userId int64, page int, limit int) (*sql.Stmt, *sql.Rows, error) {
+	querys := []string{}
+	prepare := []any{}
+	offset := (page - 1) * limit
+	if tag != "" {
+		querys = append(querys, "p.id IN (SELECT postId from post_tags WHERE tagId = (SELECT id FROM tags WHERE name=?))")
+		prepare = append(prepare, tag)
+	}
+	switch queryType {
+	case MY_POST:
+		{
+			querys = append(querys, "p.id IN (SELECT id FROM posts WHERE userId = ?)")
+			prepare = append(prepare, userId)
+		}
+	case LIKED_POST:
+		{
+			querys = append(querys, "p.id IN (SELECT postId FROM post_reactions WHERE userId = ?)")
+			prepare = append(prepare, userId)
+		}
+	}
+	if len(querys) > 0 {
+		querys[0] = " HAVING " + querys[0]
+	}
+	queryStr := query + strings.Join(querys, " AND ")
+	queryStr += " ORDER BY p.createdAt DESC LIMIT ? OFFSET ?"
+	fmt.Println(queryStr)
+	prepare = append(prepare, limit, offset)
+	stmt, err := r.db.Prepare(queryStr)
+	if err != nil {
+		return nil, nil, err
+	}
+	rows, err1 := stmt.Query(prepare...)
+	return stmt, rows, err1
+}
+
+func (r *PostRepository) GetPostsBy(tag string, filterType int, userId int64, page, limit int) ([]*Post, error) {
+	queryPostIds := `SELECT p.id, p.title, p.content, p.createdAt, u.username, COALESCE(SUM(pl.isLike), 0) AS likeCount 
+	FROM posts p
+	LEFT JOIN users u ON p.userId = u.id
+	LEFT JOIN post_reactions pr ON p.id = pr.postId
+	LEFT JOIN post_reactions pl ON p.id = pl.postId
+	GROUP BY p.id `
+	posts := []*Post{}
+
+	stmt, rows, err := r.CompleteQuery(queryPostIds, tag, filterType, userId, page, limit)
+	if err != nil {
+		return posts, err
+	}
+	defer stmt.Close()
+	for rows.Next() {
+		var post Post
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.Username, &post.Likes)
+		if err != nil {
+			return posts, err
+		}
+		posts = append(posts, &post)
+	}
+
+	return posts, nil
 }

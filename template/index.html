@@ -32,21 +32,29 @@
           <div
             class="filter flex gap-3 flex-colum justify-between align-center"
           >
-            <form id="filter-form" class="flex" action="" method="get">
+            <form
+              action="/filter"
+              id="filter-form"
+              class="flex flex-colum gap-4"
+              method="get"
+            >
               <input
                 type="text"
                 placeholder="filtre by categories"
                 autocomplete="off"
                 name="query"
               />
+              {{if .User}}
+              <div class="personal-filter flex justify-between">
+                <select class="filter-option" name="options">
+                  <option value="0">all</option>
+                  <option value="1">my posts</option>
+                  <option value="2">liked posts</option>
+                </select>
+              </div>
+              {{end}}
+              <button>filter</button>
             </form>
-            {{if .User}}
-            <div class="personal-filter flex justify-between">
-              <a class="active" href="#">Liked Posts</a>
-              <a class="active" href="#">All Posts</a>
-              <a href="#">My Posts</a>
-            </div>
-            {{end}}
           </div>
         </aside>
 

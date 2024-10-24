@@ -20,6 +20,7 @@ func main() {
 	}
 	http.HandleFunc("/static/", handlers.ServeStatic)
 	http.HandleFunc("/", handlers.IndexHandler)
+	http.HandleFunc("/filter", handlers.FilterHandler)
 	http.HandleFunc("/register", handlers.RegisterHandler)
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/post/{id}", handlers.PostHandler)

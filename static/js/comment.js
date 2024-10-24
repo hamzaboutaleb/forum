@@ -45,7 +45,9 @@ export function handleLikeComment(commentsId) {
 
     data.isLike = likeUp || likeDown;
     console.log(data);
-    likeComment(data);
+    likeComment(data)
+      .catch((err) => console.log(err))
+      .then(() => (window.location.href = ""));
   });
 }
 
