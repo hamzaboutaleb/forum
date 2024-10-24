@@ -20,6 +20,7 @@ type Comment struct {
 	UserID    int64     `json:"userId"`
 	Username  string    `json:"username"`
 	Likes     int       `json:"likes"`
+	DisLikes  int       `json:"disLikes"`
 	Comment   string    `json:"comment"`
 	CreatedAt time.Time `json:"createdAt"`
 }
@@ -54,7 +55,10 @@ func (r *CommentRepository) Create(comment *Comment) error {
 }
 
 func (r *CommentRepository) GetPostComments(postID int64) ([]Comment, error) {
-	query := `SELECT c.id ,c.postId ,c.userId, c.comment ,c.createdAt ,u.username ,COALESCE(SUM(l.isLike), 0) AS likeCount FROM comments c 
+	query := `SELECT c.id ,c.postId ,c.userId, c.comment ,c.createdAt ,u.username , 
+	(SELECT count(*) from comment_reactions WHERE isLike=1 AND commentId=c.id ) likes,
+	(SELECT count(*) from comment_reactions WHERE isLike=-1 AND commentId=c.id ) dislike
+	FROM comments c 
 	LEFT JOIN comment_reactions l ON c.id = l.commentId 
 	LEFT JOIN users u ON c.userId = u.id WHERE c.postId = ? GROUP BY c.id HAVING count(c.id) > 0 ORDER BY c.createdAt desc`
 	stmt, err := r.db.Prepare(query)
@@ -73,7 +77,7 @@ func (r *CommentRepository) GetPostComments(postID int64) ([]Comment, error) {
 	for rows.Next() {
 		var comment Comment
 		err := rows.Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Comment, &comment.CreatedAt,
-			&comment.Username, &comment.Likes)
+			&comment.Username, &comment.Likes, &comment.DisLikes)
 		if err != nil {
 			return nil, err
 		}

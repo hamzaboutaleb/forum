@@ -383,3 +383,11 @@ button.like-btn-comment {
     }
   }
 }
+
+.like-box {
+  padding: 5px;
+  background-color: #ce581c;
+  color: #000;
+  border-radius: 4px;
+  margin-left: 4px;
+}

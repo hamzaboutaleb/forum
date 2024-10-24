@@ -179,7 +179,7 @@ func (r *PostRepository) GetPostById(id int64) (*Post, error) {
 	row := stmt.QueryRow(id)
 	err = row.Scan(&post.ID, &post.Title, &post.UserID, &post.Content, &post.CreatedAt)
 	if err != nil {
-		return nil, config.NewInternalError(err)
+		return nil, err
 	}
 	return &post, nil
 }

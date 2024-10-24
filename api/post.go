@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"forum/config"
@@ -27,18 +28,25 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	var post models.Post
 	err := utils.ReadJSON(r, &post)
+	fmt.Println(post.Content)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+	if utils.IsEmpty(post.Content) || utils.IsEmpty(post.Title) {
+		utils.WriteJSON(w, http.StatusBadRequest, "All fields required!", nil)
 		return
 	}
 	post.UserID = session.UserId
 	err = services.CreateNewPost(&post)
 	if err != nil {
 		if err.(*config.CustomError).IsInternal() {
-			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+			fmt.Println("err", err)
+			utils.WriteJSON(w, http.StatusInternalServerError, "err", nil)
 			return
 		}
-		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
+		utils.WriteJSON(w, http.StatusBadRequest, "err", nil)
+		return
 	}
 	utils.WriteJSON(w, http.StatusCreated, "Post created successfully", post)
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -24,6 +26,11 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	comRepo := models.NewCommentRepository()
 	post, err := postRepo.GetPostById(postId)
 	if err != nil {
+		fmt.Println("here")
+		if err == sql.ErrNoRows {
+			http.Error(w, "Not found", 404)
+			return
+		}
 		http.Error(w, err.Error(), 500)
 		return
 	}
