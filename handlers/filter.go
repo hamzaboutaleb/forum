@@ -54,8 +54,11 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		userId = session.UserId
 	}
 	r.ParseForm()
+	postType := 0
 	query := r.FormValue("query")
-	postType, err := strconv.Atoi(r.FormValue("options"))
+	if r.FormValue("options") != "" {
+		postType, err = strconv.Atoi(r.FormValue("options"))
+	}
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Bad request", http.StatusBadRequest)

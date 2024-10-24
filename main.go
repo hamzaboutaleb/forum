@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("/filter", handlers.FilterHandler)
 	http.HandleFunc("/register", handlers.RegisterHandler)
 	http.HandleFunc("/login", handlers.LoginHandler)
+	http.HandleFunc("/logout", handlers.LogutHandler)
 	http.HandleFunc("/post/{id}", handlers.PostHandler)
 	http.HandleFunc("/api/register", api.RegisterApi)
 	http.HandleFunc("/api/post", api.PostApi)

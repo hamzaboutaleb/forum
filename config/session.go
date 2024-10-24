@@ -60,7 +60,7 @@ func (s *SessionManager) GetSession(id string) (*Session, error) {
 	err = row.Scan(&session.ID, &session.Username, &session.UserId, &session.ExpiresAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, NewError(err)
+			return nil, nil
 		}
 		return nil, NewInternalError(err)
 	}

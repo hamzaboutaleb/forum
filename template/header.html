@@ -2,12 +2,14 @@
 <header id="header">
   <div class="container flex align-center justify-between">
     <div class="logo"><a href="/">Forum</a></div>
-    <div class="user-data flex gap-2 align-center">
-      <span class="user-photo flex align-center justify-center"
-        >{{firstChar .User.Username}}</span
-      >
-      <span class="user-name">{{.User.Username}}</span>
-    </div>
+    <a href="/logout">
+      <div class="user-data flex gap-2 align-center">
+        <span class="user-photo flex align-center justify-center"
+          >{{firstChar .User.Username}}</span
+        >
+        <span class="user-name">{{.User.Username}}</span>
+      </div>
+    </a>
   </div>
 </header>
 {{else}}

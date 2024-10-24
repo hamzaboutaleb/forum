@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -145,7 +144,6 @@ func (r *PostRepository) FindAll() ([]Post, error) {
 	if err = rows.Err(); err != nil {
 		return nil, config.NewInternalError(err)
 	}
-	fmt.Println(posts[0])
 	return posts, nil
 }
 
@@ -247,7 +245,6 @@ func (r *PostRepository) CompleteQuery(query, tag string, queryType int, userId 
 	}
 	queryStr := query + strings.Join(querys, " AND ")
 	queryStr += " ORDER BY p.createdAt DESC LIMIT ? OFFSET ?"
-	fmt.Println(queryStr)
 	prepare = append(prepare, limit, offset)
 	stmt, err := r.db.Prepare(queryStr)
 	if err != nil {

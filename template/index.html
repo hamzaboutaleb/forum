@@ -44,15 +44,15 @@
                 autocomplete="off"
                 name="query"
               />
-              {{if .User}}
               <div class="personal-filter flex justify-between">
                 <select class="filter-option" name="options">
                   <option value="0">all</option>
+                  {{if .User}}
                   <option value="1">my posts</option>
                   <option value="2">liked posts</option>
+                  {{end}}
                 </select>
               </div>
-              {{end}}
               <button>filter</button>
             </form>
           </div>
@@ -87,7 +87,7 @@
             />
             <button class="create-post" href="#">Create new post</button>
           </form>
-          {{end}} {{range .Data.Posts}}
+          {{end}} {{if len .Data.Posts}} {{range .Data.Posts}}
           <div data-id="{{.ID}}" class="post flex gap-5">
             <div class="like flex flex-colum align-center justify-center gap-1">
               <a class="like-up" href="#"
@@ -109,12 +109,14 @@
               </div>
               <div class="tags flex gap-2 mb-2">
                 {{range .Tags}}
-                <a href="#" class="tag">{{.}}</a>
+                <a href="/filter?query={{.}}" class="tag">{{.}}</a>
                 {{end}}
               </div>
               <p class="post-content">{{.Content}}</p>
             </div>
           </div>
+          {{end}} {{else}}
+          <div class="error">No posts</div>
           {{end}}
           <ul class="pagination flex gap-4 m-auto">
             {{if gt .Data.CurrentPage 1}}
