@@ -47,7 +47,6 @@ export function handleLikeComment(commentsId) {
     const likeDown = e.target.closest(".like-down") && -1;
 
     data.isLike = likeUp || likeDown;
-    console.log(data);
     likeComment(data)
       .catch((err) => console.log(err))
       .then(() => (window.location.href = ""));

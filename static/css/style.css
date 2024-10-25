@@ -318,8 +318,7 @@
         }
       }
       .like-count {
-        font-size: 20px;
-        padding: 4px;
+        font-size: 14px;
         font-weight: 500;
         color: #4e4e4e;
       }
@@ -328,7 +327,7 @@
 }
 button.like-btn-comment {
   border: 0;
-  padding: 8px;
+  padding: 4px;
   font-size: 18px;
   background-color: transparent;
   cursor: pointer;
@@ -386,8 +385,8 @@ button.like-btn-comment {
 
 .like-box {
   padding: 5px;
-  background-color: #ce581c;
+  background-color: #e6e6e6;
   color: #000;
   border-radius: 4px;
-  margin-left: 4px;
+  margin: 4px;
 }
