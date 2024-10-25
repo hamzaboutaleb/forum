@@ -41,14 +41,7 @@
           password: form.get("password").trim(),
         };
 
-        // if (data.email === "" || data.user == "" || data.password == "") {
-        //   writeError(
-        //     "Please make sure to fill in all required fields before submitting the form."
-        //   );
-        //   return;
-        // }
         register(data);
-        console.log(data);
       });
 
       async function register(userData) {

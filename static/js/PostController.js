@@ -31,7 +31,6 @@ export default class PostController {
         method: "POST",
         body: JSON.stringify(data),
       });
-      console.log(response.ok);
       let responseData = await response.json();
       if (response.ok) {
         this.writeSucc(responseData.message);

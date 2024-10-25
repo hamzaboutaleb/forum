@@ -223,7 +223,6 @@ AND p.id IN (SELECT postId FROM post_reactions WHERE userId = 1); --LIKED POSTS
 func (r *PostRepository) CompleteQuery(query, tag string, queryType int, userId int64, page int, limit int) (*sql.Stmt, *sql.Rows, error) {
 	querys := []string{}
 	prepare := []any{}
-	offset := (page - 1) * limit
 	if tag != "" {
 		querys = append(querys, "p.id IN (SELECT postId from post_tags WHERE tagId = (SELECT id FROM tags WHERE name=?))")
 		prepare = append(prepare, tag)
@@ -244,8 +243,7 @@ func (r *PostRepository) CompleteQuery(query, tag string, queryType int, userId 
 		querys[0] = " HAVING " + querys[0]
 	}
 	queryStr := query + strings.Join(querys, " AND ")
-	queryStr += " ORDER BY p.createdAt DESC LIMIT ? OFFSET ?"
-	prepare = append(prepare, limit, offset)
+	queryStr += " ORDER BY p.createdAt DESC"
 	stmt, err := r.db.Prepare(queryStr)
 	if err != nil {
 		return nil, nil, err

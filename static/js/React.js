@@ -32,7 +32,6 @@ async function getLikes(postId, el) {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${data.message}`);
     }
-    console.log(data);
     el.textContent = `${data.data}`;
   } catch (error) {
     console.error("Error fetching likes:", error);

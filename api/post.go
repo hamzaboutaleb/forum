@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"forum/config"
@@ -28,7 +27,6 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	var post models.Post
 	err := utils.ReadJSON(r, &post)
-	fmt.Println(post.Content)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
 		return
@@ -41,7 +39,6 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	err = services.CreateNewPost(&post)
 	if err != nil {
 		if err.(*config.CustomError).IsInternal() {
-			fmt.Println("err", err)
 			utils.WriteJSON(w, http.StatusInternalServerError, "err", nil)
 			return
 		}

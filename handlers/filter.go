@@ -28,16 +28,11 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 
 func pagination(r *http.Request) (int, int) {
 	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
 	currPage, err := strconv.Atoi(pageStr)
 	if err != nil || currPage < 1 {
 		currPage = 1
 	}
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 1 {
-		limit = config.LIMIT_PER_PAGE
-	}
-	return currPage, limit
+	return currPage, 10
 }
 
 func PostFilter(w http.ResponseWriter, r *http.Request) {
@@ -77,18 +72,20 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
-	count, err := postRep.Count()
+	count := len(posts)
+	sliceOfPosts := posts[(currPage-1)*limit : min(count, (currPage-1)*limit+limit)]
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	page := NewPageStruct("forum", sessionID, nil)
 	page.Data = IndexStruct{
-		Posts:       posts,
+		Posts:       sliceOfPosts,
 		TotalPages:  int(math.Ceil(float64(count) / config.LIMIT_PER_PAGE)),
 		CurrentPage: currPage,
+		Query:       query,
 	}
-	config.TMPL.Render(w, "index.html", page)
+	config.TMPL.Render(w, "filter.html", page)
 }
 
 func getPostsFilter(posts []*models.Post) ([]*models.Post, error) {

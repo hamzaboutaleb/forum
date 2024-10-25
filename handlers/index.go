@@ -15,6 +15,7 @@ type IndexStruct struct {
 	Posts       []*models.Post
 	TotalPages  int
 	CurrentPage int
+	Query       string
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
