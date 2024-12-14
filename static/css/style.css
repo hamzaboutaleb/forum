@@ -236,14 +236,14 @@
 }
 
 @media screen and (max-width: 950px) {
-  body {
-    background-color: red;
+  #main {
+    flex-direction: column;
   }
 }
 
 /* POST page */
 #post {
-  width: 60%;
+  width: min(900px, 90%);
   margin-inline: auto;
   .post-title {
     margin-bottom: 12px;
@@ -260,7 +260,7 @@
   }
   .comments {
     margin-top: 42px;
-    width: 70%;
+    width: 100%;
     margin-block: 12px;
     background-color: #a1a1a154;
     padding: 8px;

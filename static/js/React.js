@@ -1,3 +1,5 @@
+import { redirectTo } from "./utils.js";
+
 async function reactToPost(postId, isLike, countEl) {
   try {
     const response = await fetch(`/api/react`, {
@@ -11,19 +13,15 @@ async function reactToPost(postId, isLike, countEl) {
         action: "react",
       }),
     });
-
+    if (!response.ok) throw response;
     const result = await response.json();
-    if (response.ok) {
-      console.log(result.message);
-    } else {
-      console.error(`Error: ${response.status} - ${result.message}`);
-    }
     countEffect(countEl, response.ok);
     return result;
   } catch (error) {
-    console.log(error);
+    if (error?.status == 401) return redirectTo("/login");
   }
 }
+
 async function getLikes(postId, el) {
   try {
     const response = await fetch(`/api/react?postId=${postId}`);
