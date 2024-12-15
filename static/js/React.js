@@ -1,75 +1,114 @@
+import { likePost, dislikePost, getPostReactions } from "./api.js";
 import { redirectTo } from "./utils.js";
-
-async function reactToPost(postId, isLike, countEl) {
-  try {
-    const response = await fetch(`/api/react`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        postId,
-        isLike,
-        action: "react",
-      }),
-    });
-    if (!response.ok) throw response;
-    const result = await response.json();
-    countEffect(countEl, response.ok);
-    return result;
-  } catch (error) {
-    if (error?.status == 401) return redirectTo("/login");
+export default class PostReact {
+  constructor(parentEl) {
+    /** @type {HTMLDivElement} */
+    this.parentEl = parentEl;
+    this.initEvents();
   }
-}
 
-async function getLikes(postId, el) {
-  try {
-    const response = await fetch(`/api/react?postId=${postId}`);
+  initEvents() {
+    this.parentEl.addEventListener("click", this.handleOnClickEvent.bind(this));
+  }
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${data.message}`);
+  /**
+   *
+   * @param {PointerEvent} e
+   */
+  handleOnClickEvent(e) {
+    const postElement = e.target.closest(".post");
+    if (!postElement) return;
+    const postView = new PostView(postElement, e.target);
+    if (postView.isDislikeClicked) {
+      e.preventDefault();
+      return this.handleDislike(postView);
     }
-    el.textContent = `${data.data}`;
-  } catch (error) {
-    console.error("Error fetching likes:", error);
+    if (postView.isLikeClicked) {
+      e.preventDefault();
+      return this.handleLike(postView);
+    }
+  }
+  /**
+   *
+   * @param {PostView} postView
+   */
+  async handleDislike(postView) {
+    try {
+      await dislikePost(postView.postId);
+      const postData = await getPostReactions(postView.postId);
+      const { likesCount, dislikesCount } = postData.data;
+      postView.updateReactions(likesCount, dislikesCount);
+    } catch (error) {
+      if (error?.status == 401) {
+        redirectTo("/login");
+        return;
+      }
+      console.error(error);
+      postView.updateDisLikeError();
+    }
+  }
+
+  async handleLike(postView) {
+    try {
+      await likePost(postView.postId);
+      const postData = await getPostReactions(postView.postId);
+      const { likesCount, dislikesCount } = postData.data;
+      postView.updateReactions(likesCount, dislikesCount);
+    } catch (error) {
+      console.error(error);
+      postView.updateDisLikeError();
+    }
   }
 }
 
-export function ReactHandler() {
-  let posts = document.querySelectorAll(".post");
-
-  posts.forEach((post) => {
-    post.addEventListener("click", async (e) => {
-      let countEl = post.querySelector(".like-count");
-      const upLike = e.target.closest(".like-up");
-      if (upLike) {
-        e.preventDefault();
-        reactToPost(+post.dataset.id, 1, countEl).then(() =>
-          getLikes(+post.dataset.id, countEl)
-        );
-        return;
-      }
-      const downLike = e.target.closest(".like-down");
-      if (downLike) {
-        e.preventDefault();
-        reactToPost(+post.dataset.id, -1, countEl).then(() =>
-          getLikes(+post.dataset.id, countEl)
-        );
-        return;
-      }
-    });
-  });
-}
-
-function countEffect(countEl, isSucces) {
-  if (isSucces) {
-    countEl.style.color = "green";
-  } else {
-    countEl.style.color = "red";
+class PostView {
+  /**
+   *
+   * @param {HTMLDivElement} postElement
+   * @param {HTMLElement} target
+   */
+  constructor(postElement, target) {
+    this.postElement = postElement;
+    this.target = target;
+    this.initElements();
   }
 
-  setTimeout(() => {
-    countEl.style.color = "";
-  }, 1000);
+  initElements() {
+    this.likeUp = this.postElement.querySelector(".like-up");
+    this.likeDown = this.postElement.querySelector(".like-down");
+    this.likeCount = this.likeUp.querySelector(".like-count");
+    this.dislikeCount = this.likeDown.querySelector(".like-count");
+  }
+
+  get postId() {
+    return +this.postElement.dataset.id;
+  }
+
+  get isDislikeClicked() {
+    return this.target.closest(".like-down");
+  }
+
+  get isLikeClicked() {
+    return this.target.closest(".like-up");
+  }
+
+  updateReactions(likes, dislikes) {
+    this.likeCount.innerHTML = likes;
+    this.dislikeCount.innerHTML = dislikes;
+  }
+
+  updateLikeError() {
+    this.likeCount.style.color = "red";
+    setTimeout(() => {
+      this.likeCount.style.color = "";
+    }, 1000);
+  }
+
+  updateDisLikeError() {
+    this.dislikeCount.style.color = "red";
+    setTimeout(() => {
+      console.log("done");
+      this.dislikeCount.style.color = "";
+    }, 1000);
+  }
 }

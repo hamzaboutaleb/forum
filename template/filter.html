@@ -16,12 +16,7 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <script type="module">
-      import PostController from "/static/js/PostController.js";
-      import { ReactHandler } from "/static/js/React.js";
-      let postController = new PostController("#new_post_form", ".box");
-      ReactHandler();
-    </script>
+    <script type="module" src="/static/js/filter.js"></script>
     <title>{{.Title}}</title>
   </head>
   <body>
@@ -89,13 +84,14 @@
           </form>
           {{end}} {{if len .Data.Posts}} {{range .Data.Posts}}
           <div data-id="{{.ID}}" class="post flex gap-5">
-            <div class="like flex flex-colum align-center justify-center gap-1">
-              <a class="like-up" href="#"
-                ><i class="fa-solid fa-chevron-up"></i
-              ></a>
-              <span class="like-count">{{.Likes}}</span>
-              <a class="like-down" href="#"
-                ><i class="fa-solid fa-chevron-down"></i
+            <div class="like flex flex-colum align-center justify-between">
+              <a class="like-up flex flex-colum" href="#"
+                ><i class="fa-solid fa-chevron-up"></i>
+                <span class="like-count">{{.Likes}}</span>
+              </a>
+              <a class="like-down flex flex-colum text-center" href="#">
+                <span class="like-count">{{.Dislikes}}</span>
+                <i class="fa-solid fa-chevron-down"></i
               ></a>
             </div>
             <div class="content">

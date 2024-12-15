@@ -7,7 +7,10 @@ export default class PostController {
 
   addEvent(form, box) {
     this.formEl = document.querySelector(form);
-    if (!this.formEl) return;
+    if (!this.formEl) {
+      console.error(`${form} element not found`);
+      return;
+    }
     this.boxEl = this.formEl.querySelector(box);
     this.formEl.addEventListener("submit", (e) => {
       e.preventDefault();

@@ -13,6 +13,12 @@ type Like struct {
 	IsLike int   `json:"isLike"`
 }
 
+type PostLike struct {
+	PostId        int64 `json:"postId"`
+	LikesCount    int64 `json:"likesCount"`
+	DislikesCount int64 `json:"dislikesCount"`
+}
+
 type LikeRepository struct {
 	db *sql.DB
 }
@@ -68,4 +74,18 @@ func (r *LikeRepository) CountLikes(postId int64) (int, error) {
 		return 0, err
 	}
 	return likes, nil
+}
+
+func (r *LikeRepository) GetPostLikes(postId int64) (*PostLike, error) {
+	stmt, err := r.db.Prepare("select postId, SUM(CASE WHEN isLike = -1 THEN 1 ELSE 0 END) as dislike, SUM(CASE WHEN IsLike = 1 THEN 1 ELSE 0 END) as likes from post_reactions WHERE postId = ? GROUP BY postId")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	var postLike PostLike
+	err = stmt.QueryRow(postId).Scan(&postLike.PostId, &postLike.DislikesCount, &postLike.LikesCount)
+	if err != nil {
+		return nil, err
+	}
+	return &postLike, nil
 }

@@ -106,22 +106,29 @@
     width: 90%;
   }
   .like {
-    font-size: 24px;
+    font-size: 22px;
+    padding-block: 12px;
   }
   .like-up {
     color: gray;
     text-decoration: none;
+    text-align: center;
+    line-height: 0;
     &:hover {
       color: #d66228;
     }
   }
   .like-down {
+    text-decoration: none;
+    text-align: center;
+    line-height: 0;
     color: gray;
     &:hover {
       color: #d66228;
     }
   }
   .like-count {
+    text-decoration: none;
     font-size: 16px;
     user-select: none;
   }

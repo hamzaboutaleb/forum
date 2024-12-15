@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -67,9 +68,13 @@ func handleReactGet(w http.ResponseWriter, r *http.Request) {
 
 	likeRepo := models.NewLikeRepository()
 
-	count, err := likeRepo.CountLikes(postId)
+	count, err := likeRepo.GetPostLikes(postId)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+		if err == sql.ErrNoRows {
+			utils.WriteJSON(w, http.StatusNotFound, err.Error(), nil)
+		} else {
+			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+		}
 		return
 	}
 
