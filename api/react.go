@@ -45,14 +45,22 @@ func handleReactPost(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusBadRequest, "Invalid Request", nil)
 		return
 	}
-	if err != nil {
-	}
-
 	likeRepo := models.NewLikeRepository()
-
-	if err := likeRepo.AddReaction(&like); err != nil {
+	ok, err := likeRepo.IsUserReactToPost(like.UserID, like.PostID, like.IsLike)
+	if err != nil {
 		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
+	}
+	if ok {
+		if err := likeRepo.DeleteLike(like.UserID, like.PostID); err != nil {
+			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+			return
+		}
+	} else {
+		if err := likeRepo.AddReaction(&like); err != nil {
+			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

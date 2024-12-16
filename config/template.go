@@ -33,7 +33,6 @@ var funcMap = template.FuncMap{
 
 func NewTemplateManager() error {
 	tmpl := template.Must(template.New("").Funcs(funcMap).ParseGlob(filepath.Join(TEMPLATE_DIR, "*.html")))
-
 	TMPL = &TemplateManager{templates: tmpl}
 	return nil
 }

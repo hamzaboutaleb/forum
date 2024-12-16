@@ -85,7 +85,39 @@ func (r *LikeRepository) GetPostLikes(postId int64) (*PostLike, error) {
 	var postLike PostLike
 	err = stmt.QueryRow(postId).Scan(&postLike.PostId, &postLike.DislikesCount, &postLike.LikesCount)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return &postLike, nil
+		}
 		return nil, err
 	}
 	return &postLike, nil
+}
+
+func (r *LikeRepository) IsUserReactToPost(userId int64, postId int64, isLike int) (bool, error) {
+	query := `SELECT COUNT(id) FROM post_reactions WHERE userId = ? AND postId = ? AND isLike = ?`
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return false, err
+	}
+
+	defer stmt.Close()
+	var numRows int
+	err = stmt.QueryRow(userId, postId, isLike).Scan(&numRows)
+	if err != nil {
+		return false, err
+	}
+	return numRows > 0, nil
+}
+
+func (r *LikeRepository) DeleteLike(userId int64, postId int64) error {
+	query := "DELETE FROM post_reactions WHERE userId=? AND postId=?"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(userId, postId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
