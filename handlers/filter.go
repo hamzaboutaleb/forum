@@ -32,7 +32,7 @@ func pagination(r *http.Request) (int, int) {
 	if err != nil || currPage < 1 {
 		currPage = 1
 	}
-	return currPage, 10
+	return currPage, c.LIMIT_PER_PAGE
 }
 
 func PostFilter(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +73,9 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 	}
 	count := len(posts)
+	if (currPage-1)*limit > count {
+		currPage = int(math.Ceil(float64(count) / float64(limit)))
+	}
 	sliceOfPosts := posts[(currPage-1)*limit : min(count, (currPage-1)*limit+limit)]
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
