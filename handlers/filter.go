@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -74,7 +75,7 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 	}
 	count := len(posts)
 	if (currPage-1)*limit > count {
-		currPage = int(math.Ceil(float64(count) / float64(limit)))
+		currPage = max(int(math.Ceil(float64(count)/config.LIMIT_PER_PAGE)), 1)
 	}
 	sliceOfPosts := posts[(currPage-1)*limit : min(count, (currPage-1)*limit+limit)]
 	if err != nil {
