@@ -116,11 +116,13 @@
           {{end}}
           <ul class="pagination flex gap-4 m-auto">
             {{if gt .Data.CurrentPage 1}}
-            <a href="?query={{.Data.Query}}&page={{sub .Data.CurrentPage 1}}"
+            <a
+              href="?query={{.Data.Query}}&page={{sub .Data.CurrentPage 1}}&options={{.Data.Option}}"
               >Previous</a
             >
             {{end}} {{if lt .Data.CurrentPage .Data.TotalPages}}
-            <a href="?query={{.Data.Query}}&page={{add .Data.CurrentPage 1}}"
+            <a
+              href="?query={{.Data.Query}}&page={{add .Data.CurrentPage 1}}&options={{.Data.Option}}"
               >Next</a
             >
             {{end}}

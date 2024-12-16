@@ -16,6 +16,7 @@ type IndexStruct struct {
 	TotalPages  int
 	CurrentPage int
 	Query       string
+	Option      int
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,15 +36,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 func indexGet(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
 	currPage, err := strconv.Atoi(pageStr)
 	if err != nil || currPage < 1 {
 		currPage = 1
 	}
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 1 {
-		limit = config.LIMIT_PER_PAGE
-	}
+	limit := config.LIMIT_PER_PAGE
 	session := utils.GeTCookie("session", r)
 	postRep := models.NewPostRepository()
 	posts, err := getPosts(currPage, limit)

@@ -262,7 +262,8 @@ func (r *PostRepository) GetPostsBy(tag string, filterType int, userId int64, pa
 	FROM posts p
 	LEFT JOIN users u ON p.userId = u.id
 	LEFT JOIN post_reactions pr ON p.id = pr.postId
-	GROUP BY p.id`
+	GROUP BY p.id
+	`
 	posts := []*Post{}
 
 	stmt, rows, err := r.CompleteQuery(queryPostIds, tag, filterType, userId, page, limit)

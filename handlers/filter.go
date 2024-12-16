@@ -87,6 +87,7 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		TotalPages:  int(math.Ceil(float64(count) / config.LIMIT_PER_PAGE)),
 		CurrentPage: currPage,
 		Query:       query,
+		Option:      postType,
 	}
 	config.TMPL.Render(w, "filter.html", page)
 }
