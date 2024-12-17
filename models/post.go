@@ -159,17 +159,17 @@ func (r *PostRepository) Count() (int, error) {
 	return count, nil
 }
 
-func (r *PostRepository) IsPostExist(id int64) (int, error) {
+func (r *PostRepository) IsPostExist(id int64) (bool, error) {
 	var count int
 	stmt, err := r.db.Prepare(`SELECT COUNT(*) FROM posts WHERE id = ?`)
 	if err != nil {
-		return 0, err
+		return false, err
 	}
 	err = stmt.QueryRow(id).Scan(&count)
 	if err != nil {
-		return 0, err
+		return false, err
 	}
-	return count, nil
+	return count > 0, nil
 }
 
 func (r *PostRepository) GetPostById(id int64) (*Post, error) {

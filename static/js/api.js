@@ -34,3 +34,34 @@ export async function getPostReactions(postId) {
   if (!response.ok) throw data;
   return data;
 }
+
+//------------- COMMENTS
+
+export async function addComment(body) {
+  const response = await fetch("/api/add/comment", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw data;
+  }
+  return data;
+}
+
+export async function reactComment(commentId, isLike) {
+  const body = {
+    isLike,
+    commentId,
+  };
+  const response = await fetch("/api/like/comment", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw data;
+  }
+  return data;
+}

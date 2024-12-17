@@ -17,14 +17,7 @@
       referrerpolicy="no-referrer"
     />
     <title>{{.Title}}</title>
-    <script type="module">
-      import {
-        handleCommentForm,
-        handleLikeComment,
-      } from "/static/js/comment.js";
-      handleCommentForm("commentForm");
-      handleLikeComment("comment_section");
-    </script>
+    <script type="module" src="/static/js/comment.js"></script>
   </head>
   <body>
     {{template "header.html" .}}
@@ -38,6 +31,7 @@
         class="comments"
       >
         {{if .User}}
+        <h4>Leave a Comment</h4>
         <form
           id="commentForm"
           data-postId="{{.Data.Post.ID}}"
@@ -45,35 +39,36 @@
           action="#"
           method="post"
         >
-          <h4>Leave a Comment</h4>
           <textarea id="comment" name="comment" rows="4" required></textarea>
           <button type="submit">Comment</button>
         </form>
         {{end}}
         <h3>Comments</h3>
-        {{range .Data.Comments}}
-        <div data-id="{{.ID}}" class="comment">
-          <p class="comment-info">
-            <strong>{{.Username}}</strong>
-            <em>{{.CreatedAt.Format "2006 Jan 02"}}</em>
-          </p>
-          <p class="commnet-content">{{.Comment}}</p>
-          <div class="comment-actions flex align-center">
-            <div class="like-box">
-              <button class="like-up like-btn-comment">
-                <i class="fa-solid fa-chevron-up"></i>
-              </button>
-              <span class="like-count">{{.Likes}}</span>
-            </div>
-            <div class="like-box">
-              <span class="like-count">{{.DisLikes}}</span>
-              <button class="like-down like-btn-comment">
-                <i class="fa-solid fa-chevron-down"></i>
-              </button>
+        <div id="comment-list">
+          {{range .Data.Comments}}
+          <div data-id="{{.ID}}" class="comment">
+            <p class="comment-info">
+              <strong>{{.Username}}</strong>
+              <em>{{.CreatedAt.Format "2006 Jan 02"}}</em>
+            </p>
+            <p class="commnet-content">{{.Comment}}</p>
+            <div class="comment-actions flex align-center">
+              <div class="like-box">
+                <button class="like-up like-btn-comment">
+                  <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <span class="like-count">{{.Likes}}</span>
+              </div>
+              <div class="like-box">
+                <span class="like-count">{{.DisLikes}}</span>
+                <button class="like-down like-btn-comment">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </button>
+              </div>
             </div>
           </div>
+          {{end}}
         </div>
-        {{end}}
       </section>
     </article>
   </body>

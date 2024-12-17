@@ -1,77 +1,144 @@
+import { addComment, reactComment } from "./api.js";
 import { DOMError } from "./Error.js";
 
-async function likeComment(data) {
-  console.log(data);
-  const response = await fetch("/api/like/comment", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-  const responseData = await response.json();
-  if (!response.ok) {
-    throw new Error(responseData.message);
+export class CommentForm {
+  constructor(selector) {
+    this.formEl = this.initFormEl(selector);
+    this.initEvent();
+    this.alertEl = new DOMError(this.formEl);
   }
 
-  return responseData.message;
-}
-
-async function addComment(data) {
-  const response = await fetch("/api/add/comment", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-
-  const responseData = await response.json();
-  if (!response.ok) {
-    throw new Error(responseData.message);
+  initFormEl(selector) {
+    const el = document.querySelector(selector);
+    if (!el) throw new Error("comment form is not found");
+    return el;
   }
-  console.log(responseData);
 
-  return responseData.message;
-}
-//userId, postId, isLike
-export function handleLikeComment(commentsId) {
-  let commentsEl = document.getElementById(commentsId);
-  if (!commentsEl) return;
-  commentsEl.addEventListener("click", (e) => {
-    const comment = e.target.closest(".comment");
-    if (!comment) {
+  initEvent() {
+    this.formEl.addEventListener("submit", this.handleOnSubmit.bind(this));
+  }
+
+  /**
+   *
+   * @param {SubmitEvent} e
+   */
+  async handleOnSubmit(e) {
+    e.preventDefault();
+    this.formData = new FormData(this.formEl);
+    if (this.content.trim().length == 0) {
+      this.alertEl.writeError("Comment cannot be empty");
       return;
     }
-    const { id } = comment.dataset;
-    const data = {
-      commentId: +id,
-    };
-    const likeUp = e.target.closest(".like-up") && 1;
-    const likeDown = e.target.closest(".like-down") && -1;
+    try {
+      const data = await addComment(this.data);
+      this.alertEl.writeSucc(data.message);
+      this.reload();
+    } catch (error) {
+      this.alertEl.writeError(error.message);
+    }
+  }
 
-    data.isLike = likeUp || likeDown;
-    likeComment(data)
-      .catch((err) => console.log(err))
-      .then(() => (window.location.href = ""));
-  });
+  reload(time = 1000) {
+    setTimeout(() => {
+      window.location.href = "";
+    }, time);
+  }
+
+  get content() {
+    return this.formData.get("comment");
+  }
+
+  get postId() {
+    return +this.formEl.dataset.postid;
+  }
+
+  get data() {
+    return {
+      comment: this.content,
+      postId: this.postId,
+    };
+  }
 }
 
-export function handleCommentForm(formId) {
-  const form = document.getElementById(formId);
-  if (!form) return;
-  const domError = new DOMError(form);
-  form.addEventListener("submit", (e) => {
+class Comment {
+  constructor(el) {
+    this.el = el;
+    this.likeEl = el.querySelector(".like-up").closest(".like-box");
+    this.dislikeEl = el.querySelector(".like-down").closest(".like-box");
+  }
+
+  updateReaction(like, dislike) {
+    console.log(this.likeEl, dislike);
+    this.likeEl.querySelector(".like-count").innerText = like;
+    this.dislikeEl.querySelector(".like-count").innerText = dislike;
+  }
+
+  displayError(error) {
+    this.likeEl.querySelector("span").style.color = "red";
+    this.dislikeEl.querySelector("span").style.color = "red";
+    this.resetError();
+    console.error(error);
+  }
+
+  resetError(time = 500) {
+    setTimeout(() => {
+      this.likeEl.querySelector("span").style.color = "";
+      this.dislikeEl.querySelector("span").style.color = "";
+    }, time);
+  }
+
+  get commentId() {
+    return +this.el.dataset.id;
+  }
+}
+
+export class CommentLike {
+  constructor(selector) {
+    this.selector = selector;
+  }
+
+  init() {
+    this.commentList = document.querySelector(this.selector);
+    if (!this.commentList)
+      throw new Error(`element with ${this.selector} selector doesnt exists`);
+    this.initEvent();
+  }
+
+  initEvent() {
+    this.commentList.addEventListener("click", this.handleOnClick.bind(this));
+  }
+
+  /**
+   *
+   * @param {PointerEvent} e
+   */
+  async handleOnClick(e) {
     e.preventDefault();
-    const { postid } = form.dataset;
-    const formData = new FormData(form);
-    const data = {
-      postId: +postid,
-      comment: formData.get("comment"),
-    };
-    addComment(data)
-      .then((data) => {
-        domError.writeSucc(data);
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      })
-      .catch((e) => {
-        domError.writeError(e.message);
-      });
-  });
+    let commentEl = e.target.closest(".comment");
+    if (!commentEl) return;
+    let comment = new Comment(commentEl);
+    let value = this.getValueReaction(e.target);
+    if (value === null) return;
+    try {
+      const { data } = await reactComment(comment.commentId, value);
+      comment.updateReaction(data.likes, data.dislikes);
+    } catch (error) {
+      comment.displayError(error);
+    }
+  }
+
+  getCommentEl(target) {
+    const commentEl = target.closest(".comment");
+    return commentEl;
+  }
+
+  getValueReaction(target) {
+    if (target.closest(".like-up")) return 1;
+    if (target.closest(".like-down")) return -1;
+    return null;
+  }
 }
+
+new CommentForm("#commentForm");
+const commentLike = new CommentLike("#comment-list");
+commentLike.init();

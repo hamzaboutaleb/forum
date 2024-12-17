@@ -37,7 +37,7 @@ func handleReactPost(w http.ResponseWriter, r *http.Request) {
 	like.UserID = session.UserId
 	postRepo := models.NewPostRepository()
 	isExistPost, _ := postRepo.IsPostExist(like.PostID)
-	if isExistPost == 0 {
+	if !isExistPost {
 		utils.WriteJSON(w, http.StatusBadRequest, "Invalid Request", nil)
 		return
 	}
