@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400;600;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/utils.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script type="module" src="/static/js/indexHandler.js"></script>
+    <title>Error</title>
+  </head>
+  <body>
+    <header id="header">
+        <div class="container flex align-center justify-between">
+          <div class="logo"><a href="/">Forum</a></div>
+        </div>
+      </header>
+    <div class="container">
+      <main id="main" class="error-page">
+        <div class="error-message">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <h1>Oops! Something went wrong.</h1>
+          <p>We couldn't process your request at the moment. Please try again later.</p>
+          <div class="action-buttons">
+            <a href="/" class="btn">Go to Home</a>
+            <a href="javascript:history.back()" class="btn">Go Back</a>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

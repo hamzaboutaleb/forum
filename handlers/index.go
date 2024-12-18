@@ -21,7 +21,7 @@ type IndexStruct struct {
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.Error(w, "Page Not Found", http.StatusNotFound)
+		config.TMPL.RenderError(w, "error.html", "Page Not Found", http.StatusNotFound)
 		return
 	}
 	switch r.Method {
@@ -30,7 +30,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		indexPost(w, r)
 	default:
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		config.TMPL.RenderError(w, "error.html", "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -45,12 +45,12 @@ func indexGet(w http.ResponseWriter, r *http.Request) {
 	postRep := models.NewPostRepository()
 	posts, err := getPosts(currPage, limit)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
 		return
 	}
 	count, err := postRep.Count()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
 		return
 	}
 	page := NewPageStruct("forum", session, nil)

@@ -40,7 +40,7 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 	sessionID := utils.GetSessionCookie(r)
 	session, err := c.SESSION.GetSession(sessionID)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	var userId int64 = -1
@@ -54,23 +54,23 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		postType, err = strconv.Atoi(r.FormValue("options"))
 	}
 	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		config.TMPL.RenderError(w, "error.html", "Bad request", http.StatusBadRequest)
 		return
 	}
 	postType, err = selectPostType(postType, userId != -1)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusBadRequest)
 		return
 	}
 	postRep := models.NewPostRepository()
 
 	posts, err := postRep.GetPostsBy(query, postType, userId, currPage, limit)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
 	}
 	posts, err = getPostsFilter(posts)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
 	}
 	count := len(posts)
 	if (currPage-1)*limit > count {
@@ -78,7 +78,7 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 	}
 	sliceOfPosts := posts[(currPage-1)*limit : min(count, (currPage-1)*limit+limit)]
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
 		return
 	}
 	page := NewPageStruct("forum", sessionID, nil)

@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
+
+	"forum/config"
 )
 
 type Response struct {
@@ -22,7 +24,7 @@ func WriteJSON(w http.ResponseWriter, status int, message string, data interface
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", "Failed to encode JSON", http.StatusInternalServerError)
 	}
 }
 

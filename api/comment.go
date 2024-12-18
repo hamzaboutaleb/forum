@@ -38,7 +38,7 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 	commentRepo := models.NewCommentRepository()
 	isExist, err := postRepo.IsPostExist(comment.PostID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	if !isExist {
@@ -47,7 +47,7 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 	}
 	err = commentRepo.Create(&comment)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", "Internal server error", http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}

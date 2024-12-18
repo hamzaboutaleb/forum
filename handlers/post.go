@@ -18,7 +18,7 @@ type PostData struct {
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	postId, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
 		return
 	}
 	postRepo := models.NewPostRepository()
@@ -26,15 +26,15 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	post, err := postRepo.GetPostById(postId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Not found", 404)
+			config.TMPL.RenderError(w, "error.html", "Not found", 404)
 			return
 		}
-		http.Error(w, err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
 		return
 	}
 	comment, err := comRepo.GetPostComments(postId)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
 		return
 	}
 	postData := PostData{

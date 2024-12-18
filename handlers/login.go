@@ -21,7 +21,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		postLogin(w, r)
 	default:
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		config.TMPL.RenderError(w, "error.html", "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -49,7 +49,7 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 
 	session, err := config.SESSION.CreateSession(user.Username, user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
 		return
 	}
 	cookies := http.Cookie{
