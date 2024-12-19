@@ -67,20 +67,19 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 	posts, err := postRep.GetPostsBy(query, postType, userId, currPage, limit)
 	if err != nil {
 		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
+		return
 	}
 	posts, err = getPostsFilter(posts)
 	if err != nil {
-		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
+		return
 	}
 	count := len(posts)
 	if (currPage-1)*limit > count {
 		currPage = max(int(math.Ceil(float64(count)/config.LIMIT_PER_PAGE)), 1)
 	}
+
 	sliceOfPosts := posts[(currPage-1)*limit : min(count, (currPage-1)*limit+limit)]
-	if err != nil {
-		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
-		return
-	}
 	page := NewPageStruct("forum", sessionID, nil)
 	page.Data = IndexStruct{
 		Posts:       sliceOfPosts,
