@@ -17,6 +17,14 @@ func RegisterApi(w http.ResponseWriter, r *http.Request) {
 	}
 	var user models.User
 	err := utils.ReadJSON(r, &user)
+	if !services.IsBetween(user.Username, 3, 50) {
+		utils.WriteJSON(w, http.StatusBadRequest, "Invalid username", nil)
+		return
+	}
+	if !services.IsBetween(user.Password, 3, 50) {
+		utils.WriteJSON(w, http.StatusBadRequest, "Invalid password", nil)
+		return
+	}
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, "Invalid input", nil)
 		return
