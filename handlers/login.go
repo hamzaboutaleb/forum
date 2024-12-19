@@ -43,6 +43,7 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO make page
 		page.Error = err.Error()
+		w.WriteHeader(400)
 		config.TMPL.Render(w, "login.html", page)
 		return
 	}

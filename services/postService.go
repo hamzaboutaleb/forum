@@ -9,7 +9,7 @@ import (
 	"forum/models"
 )
 
-func check_tags(strs []string) bool {
+func CheckTags(strs []string) bool {
 	for _, str := range strs {
 		if len(str) > 20 {
 			return false
@@ -34,7 +34,7 @@ func CreateNewPost(post *models.Post) error {
 	if !IsBetween(post.Content, 0, 3000) {
 		return config.NewError(errors.New("content has exceeded the limits"))
 	}
-	if !check_tags(post.Tags) {
+	if !CheckTags(post.Tags) {
 		return config.NewError(errors.New("tags have exceeded the limits"))
 	}
 	// check if input empty
