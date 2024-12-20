@@ -20,33 +20,22 @@ func NewTagRepository() *TagRepository {
 }
 
 func (r *TagRepository) CreateTag(name string) (*Tag, error) {
-	stmt, err := r.db.Prepare("INSERT INTO tags (name) VALUES (?)")
+	query := "INSERT INTO tags (name) VALUES (?)"
+	res, err := r.db.Exec(query, name)
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
-
-	res, err := stmt.Exec(name)
-	if err != nil {
-		return nil, err
-	}
-
 	id, err := res.LastInsertId()
 	if err != nil {
 		return nil, err
 	}
-
 	return &Tag{ID: id, Name: name}, nil
 }
 
 func (r *TagRepository) GetAllTags() ([]Tag, error) {
-	stmt, err := r.db.Prepare("SELECT id, name FROM tags")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
+	query := "SELECT id, name FROM tags"
 
-	rows, err := stmt.Query()
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +45,9 @@ func (r *TagRepository) GetAllTags() ([]Tag, error) {
 	for rows.Next() {
 		var tag Tag
 		if err := rows.Scan(&tag.ID, &tag.Name); err != nil {
+			if err == sql.ErrNoRows {
+				return tags, nil
+			}
 			return nil, err
 		}
 		tags = append(tags, tag)
@@ -65,34 +57,25 @@ func (r *TagRepository) GetAllTags() ([]Tag, error) {
 }
 
 func (r *TagRepository) IsTagExists(name string) (bool, error) {
+	query := "SELECT COUNT(*) > 0 FROM tags WHERE name = ?"
 	var exists bool
-
-	stmt, err := r.db.Prepare("SELECT COUNT(*) > 0 FROM tags WHERE name = ?")
+	err := r.db.QueryRow(query, name).Scan(&exists)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
 		return false, err
 	}
-	defer stmt.Close()
-
-	err = stmt.QueryRow(name).Scan(&exists)
-	if err != nil && err != sql.ErrNoRows {
-		return false, err
-	}
-
 	return exists, nil
 }
 
 func (r *TagRepository) GetTagsForPost(postId int64) ([]string, error) {
-	stmt, err := r.db.Prepare(`
-        SELECT t.name
-        FROM tags t
-        JOIN post_tags pt ON t.id = pt.tagId
-        WHERE pt.postId = ?`)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
+	query := `SELECT t.name
+  FROM tags t
+	JOIN post_tags pt ON t.id = pt.tagId
+  WHERE pt.postId = ?`
 
-	rows, err := stmt.Query(postId)
+	rows, err := r.db.Query(query, postId)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +85,9 @@ func (r *TagRepository) GetTagsForPost(postId int64) ([]string, error) {
 	for rows.Next() {
 		var tagName string
 		if err := rows.Scan(&tagName); err != nil {
+			if err == sql.ErrNoRows {
+				return tags, nil
+			}
 			return nil, err
 		}
 		tags = append(tags, tagName)

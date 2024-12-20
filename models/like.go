@@ -28,33 +28,26 @@ func NewLikeRepository() *LikeRepository {
 }
 
 func (r *LikeRepository) AddReaction(like *Like) error {
-	stmt, err := r.db.Prepare(`
+	query := `
         INSERT INTO post_reactions (userId, postId, isLike)
         VALUES (?, ?, ?)
-        ON CONFLICT(userId, postId) DO UPDATE SET isLike = ?`)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(like.UserID, like.PostID, like.IsLike, like.IsLike)
+        ON CONFLICT(userId, postId) DO UPDATE SET isLike = ?`
+	_, err := r.db.Exec(query, like.UserID, like.PostID, like.IsLike, like.IsLike)
 	return err
 }
 
 func (r *LikeRepository) IsReactionExists(like *Like) (bool, int, error) {
 	var exists bool
 	var isLike int
-	stmt, err := r.db.Prepare(`
+	query := `
         SELECT EXISTS(SELECT 1 FROM post_reactions WHERE userId = ? AND postId = ?),
                isLike
-        FROM post_reactions WHERE userId = ? AND postId = ?`)
+        FROM post_reactions WHERE userId = ? AND postId = ?`
+	err := r.db.QueryRow(query, like.UserID, like.PostID, like.UserID, like.PostID).Scan(&exists, &isLike)
 	if err != nil {
-		return false, 0, err
-	}
-	defer stmt.Close()
-
-	err = stmt.QueryRow(like.UserID, like.PostID, like.UserID, like.PostID).Scan(&exists, &isLike)
-	if err != nil && err != sql.ErrNoRows {
+		if err == sql.ErrNoRows {
+			return false, 0, nil
+		}
 		return false, 0, err
 	}
 
@@ -62,14 +55,9 @@ func (r *LikeRepository) IsReactionExists(like *Like) (bool, int, error) {
 }
 
 func (r *LikeRepository) CountLikes(postId int64) (int, error) {
-	stmt, err := r.db.Prepare("SELECT SUM(isLike) FROM post_reactions WHERE postId = ?")
-	if err != nil {
-		return 0, err
-	}
-	defer stmt.Close()
-
+	query := "SELECT SUM(isLike) FROM post_reactions WHERE postId = ?"
 	var likes int
-	err = stmt.QueryRow(postId).Scan(&likes)
+	err := r.db.QueryRow(query, postId).Scan(&likes)
 	if err != nil {
 		return 0, err
 	}
@@ -77,13 +65,15 @@ func (r *LikeRepository) CountLikes(postId int64) (int, error) {
 }
 
 func (r *LikeRepository) GetPostLikes(postId int64) (*PostLike, error) {
-	stmt, err := r.db.Prepare("select postId, SUM(CASE WHEN isLike = -1 THEN 1 ELSE 0 END) as dislike, SUM(CASE WHEN IsLike = 1 THEN 1 ELSE 0 END) as likes from post_reactions WHERE postId = ? GROUP BY postId")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
+	query := `select 
+	postId, 
+	SUM(CASE WHEN isLike = -1 THEN 1 ELSE 0 END) as dislike, 
+	SUM(CASE WHEN IsLike = 1 THEN 1 ELSE 0 END) as likes 
+	from post_reactions WHERE postId = ? 
+	GROUP BY postId`
+
 	var postLike PostLike
-	err = stmt.QueryRow(postId).Scan(&postLike.PostId, &postLike.DislikesCount, &postLike.LikesCount)
+	err := r.db.QueryRow(query, postId).Scan(&postLike.PostId, &postLike.DislikesCount, &postLike.LikesCount)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &postLike, nil
@@ -95,14 +85,9 @@ func (r *LikeRepository) GetPostLikes(postId int64) (*PostLike, error) {
 
 func (r *LikeRepository) IsUserReactToPost(userId int64, postId int64, isLike int) (bool, error) {
 	query := `SELECT COUNT(id) FROM post_reactions WHERE userId = ? AND postId = ? AND isLike = ?`
-	stmt, err := r.db.Prepare(query)
-	if err != nil {
-		return false, err
-	}
-
-	defer stmt.Close()
 	var numRows int
-	err = stmt.QueryRow(userId, postId, isLike).Scan(&numRows)
+
+	err := r.db.QueryRow(query, userId, postId, isLike).Scan(&numRows)
 	if err != nil {
 		return false, err
 	}
@@ -111,11 +96,7 @@ func (r *LikeRepository) IsUserReactToPost(userId int64, postId int64, isLike in
 
 func (r *LikeRepository) DeleteLike(userId int64, postId int64) error {
 	query := "DELETE FROM post_reactions WHERE userId=? AND postId=?"
-	stmt, err := r.db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(userId, postId)
+	_, err := r.db.Exec(query, userId, postId)
 	if err != nil {
 		return err
 	}

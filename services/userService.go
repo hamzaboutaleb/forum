@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"forum/config"
 	"forum/models"
 	"forum/utils"
 )
@@ -24,11 +23,11 @@ func RegisterUser(user *models.User) error {
 		return err
 	}
 	if isUserExist {
-		return config.NewError(errUserOrEmailExist)
+		return errUserOrEmailExist
 	}
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return config.NewInternalError(err)
+		return err
 	}
 	user.Password = hashedPassword
 	return userRepo.CreateUser(user)
@@ -36,7 +35,7 @@ func RegisterUser(user *models.User) error {
 
 func LoginUser(username, password string) (*models.User, error) {
 	if len(strings.TrimSpace(username)) == 0 || len(strings.TrimSpace(password)) == 0 {
-		return nil, config.NewError(errFieldsEmpty)
+		return nil, errFieldsEmpty
 	}
 	userRepo := models.NewUserRepository()
 	user, err := userRepo.GetUserByUsername(username)
@@ -44,7 +43,7 @@ func LoginUser(username, password string) (*models.User, error) {
 		return nil, err
 	}
 	if utils.CheckPassword(user.Password, password) != nil {
-		return nil, config.NewError(errInvalidUserPass)
+		return nil, errInvalidUserPass
 	}
 	return user, nil
 }

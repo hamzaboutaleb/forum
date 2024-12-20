@@ -53,7 +53,7 @@ func (s *SessionManager) GetSession(id string) (*Session, error) {
 	query := `SELECT * FROM sessions WHERE id = ?`
 	stmt, err := s.db.Prepare(query)
 	if err != nil {
-		return nil, NewInternalError(err)
+		return nil, err
 	}
 	defer stmt.Close()
 	var session Session
@@ -64,7 +64,7 @@ func (s *SessionManager) GetSession(id string) (*Session, error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, NewInternalError(err)
+		return nil, err
 	}
 	if time.Now().After(session.ExpiresAt) {
 		s.DeleteSession(session.ID)
@@ -77,11 +77,11 @@ func (s *SessionManager) DeleteSession(id string) error {
 	query := `DELETE FROM sessions WHERE userId = (SELECT userId FROM sessions WHERE id = ?)`
 	stmt, err := s.db.Prepare(query)
 	if err != nil {
-		return NewInternalError(err)
+		return err
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(id)
-	return NewInternalError(err)
+	return err
 }
 
 func (s *SessionManager) DeleteOtherSession(userId int64) error {

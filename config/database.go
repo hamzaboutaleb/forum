@@ -9,7 +9,7 @@ import (
 func ConnectDatabase() error {
 	db, err := sql.Open(DRIVER_NAME, "./database/"+DATABASE_NAME)
 	if err != nil {
-		return NewInternalError(err)
+		return err
 	}
 	DB = db
 	return nil

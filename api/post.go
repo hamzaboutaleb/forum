@@ -38,11 +38,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	post.UserID = session.UserId
 	err = services.CreateNewPost(&post)
 	if err != nil {
-		if err.(*config.CustomError).IsInternal() {
-			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
-			return
-		}
-		utils.WriteJSON(w, http.StatusBadRequest, "err", nil)
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 	utils.WriteJSON(w, http.StatusCreated, "Post created successfully", post)

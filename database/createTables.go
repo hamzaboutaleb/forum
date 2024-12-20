@@ -8,7 +8,7 @@ func execQuery(query string) error {
 	db := config.DB
 	_, err := db.Exec(query)
 	if err != nil {
-		return config.NewInternalError(err)
+		return err
 	}
 	return nil
 }

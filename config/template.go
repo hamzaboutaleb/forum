@@ -40,12 +40,12 @@ func NewTemplateManager() error {
 func (tm *TemplateManager) Render(w http.ResponseWriter, tmpl string, data interface{}) error {
 	w.Header().Set("Content-Type", "text/html")
 	err := tm.templates.ExecuteTemplate(w, tmpl, data)
-	return NewInternalError(err)
+	return err
 }
 
 func (tm *TemplateManager) RenderError(w http.ResponseWriter, tmpl string, data string, status int) error {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(status)
 	err := tm.templates.ExecuteTemplate(w, tmpl, data)
-	return NewInternalError(err)
+	return err
 }

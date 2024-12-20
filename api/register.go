@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"forum/config"
 	"forum/models"
 	"forum/services"
 	"forum/utils"
@@ -39,11 +38,7 @@ func RegisterApi(w http.ResponseWriter, r *http.Request) {
 	}
 	err = services.RegisterUser(&user)
 	if err != nil {
-		if err.(*config.CustomError).IsInternal() {
-			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
-			return
-		}
-		utils.WriteJSON(w, http.StatusConflict, err.Error(), nil)
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 	utils.WriteJSON(w, http.StatusCreated, "User registered successfully", user)

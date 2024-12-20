@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"forum/config"
 	"forum/models"
 )
 
@@ -29,17 +28,17 @@ func CreateNewPost(post *models.Post) error {
 	postRepo := models.NewPostRepository()
 	TagsRepo := models.NewTagRepository()
 	if !IsBetween(post.Title, 0, 200) {
-		return config.NewError(errors.New("title has exceeded the limits"))
+		return errors.New("title has exceeded the limits")
 	}
 	if !IsBetween(post.Content, 0, 3000) {
-		return config.NewError(errors.New("content has exceeded the limits"))
+		return errors.New("content has exceeded the limits")
 	}
 	if !CheckTags(post.Tags) {
-		return config.NewError(errors.New("tags have exceeded the limits"))
+		return errors.New("tags have exceeded the limits")
 	}
 	// check if input empty
 	if strings.TrimSpace(post.Content) == "" || post.IsTagsEmpty() {
-		return config.NewError(errFieldsEmpty)
+		return errFieldsEmpty
 	}
 	post.CreatedAt = time.Now()
 	err := postRepo.Create(post)

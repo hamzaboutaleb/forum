@@ -4,7 +4,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"forum/config"
 	"forum/models"
@@ -27,8 +26,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		indexGet(w, r)
-	case http.MethodPost:
-		indexPost(w, r)
 	default:
 		config.TMPL.RenderError(w, "error.html", "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
@@ -59,23 +56,6 @@ func indexGet(w http.ResponseWriter, r *http.Request) {
 		TotalPages:  int(math.Ceil(float64(count) / config.LIMIT_PER_PAGE)),
 		CurrentPage: currPage,
 	}
-	config.TMPL.Render(w, "index.html", page)
-}
-
-func indexPost(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	session := utils.GeTCookie("session", r)
-	page := NewPageStruct("forum", session, nil)
-	title := r.FormValue("title")
-	content := r.FormValue("content")
-	tags := r.FormValue("tags")
-	response := Response{}
-	if strings.TrimSpace(title) == "" || strings.TrimSpace(content) == "" || strings.TrimSpace(tags) == "" {
-		response.Error = true
-		response.Message = "All fields must be completed."
-	}
-	page.Data = response
-	// TODO chekc tags and insert them
 	config.TMPL.Render(w, "index.html", page)
 }
 
