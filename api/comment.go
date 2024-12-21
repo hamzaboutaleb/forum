@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -11,14 +10,14 @@ import (
 )
 
 func AddComment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteJSON(w, http.StatusUnauthorized, "The HTTP method used in the request is invalid. Please ensure you're using the correct method.", nil)
+		return
+	}
 	sessionId := utils.GetSessionCookie(r)
 	session := config.IsAuth(sessionId)
 	if session == nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, "Unauthorized", nil)
-		return
-	}
-	if r.Method != http.MethodPost {
-		utils.WriteJSON(w, http.StatusUnauthorized, "Invalid request method", nil)
+		utils.WriteJSON(w, http.StatusUnauthorized, "You don't have the necessary permissions to access this. Please log in or check your access rights.", nil)
 		return
 	}
 
@@ -30,8 +29,8 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if strings.TrimSpace(comment.Comment) == "" {
-		utils.WriteJSON(w, http.StatusBadRequest, "comment is required", nil)
+	if strings.TrimSpace(comment.Comment) == "" || !utils.IsBetween(comment.Comment, 2, 1000) {
+		utils.WriteJSON(w, http.StatusBadRequest, "The comment must be between 2 and 1000 characters", nil)
 		return
 	}
 	postRepo := models.NewPostRepository()
@@ -42,43 +41,48 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !isExist {
-		utils.WriteJSON(w, http.StatusBadRequest, "Post does not exist", nil)
+		utils.WriteJSON(w, http.StatusBadRequest, "It looks like the post you're trying to comment on doesn't exist anymore.", nil)
 		return
 	}
 	err = commentRepo.Create(&comment)
 	if err != nil {
 		config.TMPL.RenderError(w, "error.html", "Internal server error", http.StatusInternalServerError)
-		log.Println(err)
 		return
 	}
-	utils.WriteJSON(w, 200, "comment added succefully", comment)
+	utils.WriteJSON(w, 200, "Your comment has been added successfully! Thanks for sharing your thoughts!", comment)
 }
 
-// userId, postId, isLike
+
 func HandleLikeComment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteJSON(w, http.StatusUnauthorized, "The HTTP method used in the request is invalid. Please ensure you're using the correct method.", nil)
+		return
+	}
 	sessionId := utils.GetSessionCookie(r)
 	session := config.IsAuth(sessionId)
 	if session == nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, "Unauthorized", nil)
+		utils.WriteJSON(w, http.StatusUnauthorized, "You don't have the necessary permissions to access this. Please log in or check your access rights.", nil)
 		return
 	}
 	var like models.CommentLike
 	err := utils.ReadJSON(r, &like)
 	like.UserID = session.UserId
 	if err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, err.Error(), nil)
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 	if like.IsLike != 1 && like.IsLike != -1 {
-		utils.WriteJSON(w, http.StatusBadRequest, "invalid request", nil)
+		utils.WriteJSON(w, http.StatusBadRequest, "You can only like or dislike a comment. Please choose one of these actions.", nil)
 		return
 	}
 	comntRepo := models.NewCommentRepository()
 	isExist, err := comntRepo.IsCommentExist(like.CommentId)
 	if err != nil {
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+		return
 	}
 	if !isExist {
-		utils.WriteJSON(w, http.StatusBadRequest, "Comment does not exits", nil)
+		utils.WriteJSON(w, http.StatusBadRequest, "You can't like or dislike a comment that doesn't exist. It might have been removed.", nil)
 		return
 	}
 	isReactionExist, err := comntRepo.IsReactionExist(like.UserID, like.CommentId, like.IsLike)
@@ -104,5 +108,5 @@ func HandleLikeComment(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-	utils.WriteJSON(w, 200, "comment like updated succefully", commentReaction)
+	utils.WriteJSON(w, http.StatusOK, "like updated succefully.", commentReaction)
 }

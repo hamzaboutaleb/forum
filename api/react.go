@@ -1,8 +1,6 @@
 package api
 
 import (
-	"database/sql"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -18,31 +16,36 @@ func ReactToPostHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		handleReactGet(w, r)
 	default:
-		utils.WriteJSON(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		utils.WriteJSON(w, http.StatusMethodNotAllowed, "The HTTP method used in the request is invalid. Please ensure you're using the correct method.", nil)
 	}
 }
 
 func handleReactPost(w http.ResponseWriter, r *http.Request) {
-	session := config.IsAuth(utils.GetSessionCookie(r))
+	sessionId := utils.GetSessionCookie(r)
+	session := config.IsAuth(sessionId)
 	if session == nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, "Unauthorized", nil)
+		utils.WriteJSON(w, http.StatusUnauthorized, "You don't have the necessary permissions to access this. Please log in or check your access rights.", nil)
 		return
 	}
 	var like models.Like
 	err := utils.ReadJSON(r, &like)
+	like.UserID = session.UserId
 	if err != nil {
 		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-	like.UserID = session.UserId
 	postRepo := models.NewPostRepository()
-	isExistPost, _ := postRepo.IsPostExist(like.PostID)
+	isExistPost, err := postRepo.IsPostExist(like.PostID)
+	if err != nil {
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
+		return
+	}
 	if !isExistPost {
-		utils.WriteJSON(w, http.StatusBadRequest, "Invalid Request", nil)
+		utils.WriteJSON(w, http.StatusBadRequest, "The post you're trying to react to does not exist.", nil)
 		return
 	}
 	if like.IsLike != -1 && like.IsLike != 1 {
-		utils.WriteJSON(w, http.StatusBadRequest, "Invalid Request", nil)
+		utils.WriteJSON(w, http.StatusBadRequest, "You can only like or dislike a post. Please choose one of these actions.", nil)
 		return
 	}
 	likeRepo := models.NewLikeRepository()
@@ -62,9 +65,7 @@ func handleReactPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Reaction added successfully"})
+	utils.WriteJSON(w, http.StatusOK, "like updated succefully", nil)
 }
 
 func handleReactGet(w http.ResponseWriter, r *http.Request) {
@@ -73,18 +74,11 @@ func handleReactGet(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusBadRequest, "Bad Request", nil)
 		return
 	}
-
 	likeRepo := models.NewLikeRepository()
-
 	count, err := likeRepo.GetPostLikes(postId)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			utils.WriteJSON(w, http.StatusNotFound, err.Error(), nil)
-		} else {
-			utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
-		}
+		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-
 	utils.WriteJSON(w, http.StatusOK, "", count)
 }

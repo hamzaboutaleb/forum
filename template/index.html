@@ -84,7 +84,7 @@
           </form>
           {{end}} {{if len .Data.Posts}} {{range .Data.Posts}}
           <div data-id="{{.ID}}" class="post flex gap-5">
-            <div class="like flex flex-colum align-center justify-between">
+            <div class="like flex flex-colum align-center justify-center">
               <a class="like-up flex flex-colum" href="#"
                 ><i class="fa-solid fa-chevron-up"></i>
                 <span class="like-count">{{.Likes}}</span>

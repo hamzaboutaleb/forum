@@ -18,6 +18,7 @@ func main() {
 	if err := utils.InitTables(); err != nil {
 		log.Fatal(err)
 	}
+	defer config.DB.Close()
 	http.HandleFunc("/static/", handlers.ServeStatic)
 	http.HandleFunc("/", handlers.IndexHandler)
 	http.HandleFunc("/filter", handlers.FilterHandler)

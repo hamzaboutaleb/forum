@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"forum/models"
+	"forum/utils"
 )
 
 func CheckTags(strs []string) bool {
@@ -17,20 +18,13 @@ func CheckTags(strs []string) bool {
 	return true
 }
 
-func IsBetween(str string, x int, y int) bool {
-	if len(str) >= x && len(str) <= y {
-		return true
-	}
-	return false
-}
-
 func CreateNewPost(post *models.Post) error {
 	postRepo := models.NewPostRepository()
 	TagsRepo := models.NewTagRepository()
-	if !IsBetween(post.Title, 0, 200) {
+	if !utils.IsBetween(post.Title, 0, 200) {
 		return errors.New("title has exceeded the limits")
 	}
-	if !IsBetween(post.Content, 0, 3000) {
+	if !utils.IsBetween(post.Content, 0, 3000) {
 		return errors.New("content has exceeded the limits")
 	}
 	if !CheckTags(post.Tags) {

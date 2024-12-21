@@ -51,15 +51,10 @@ func (s *SessionManager) CreateSession(username string, userId int64) (*Session,
 
 func (s *SessionManager) GetSession(id string) (*Session, error) {
 	query := `SELECT * FROM sessions WHERE id = ?`
-	stmt, err := s.db.Prepare(query)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
 	var session Session
 
-	row := stmt.QueryRow(id)
-	err = row.Scan(&session.ID, &session.Username, &session.UserId, &session.ExpiresAt)
+	row := s.db.QueryRow(query, id)
+	err := row.Scan(&session.ID, &session.Username, &session.UserId, &session.ExpiresAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

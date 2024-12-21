@@ -68,6 +68,7 @@ func getPosts(currPage, limit int) ([]*models.Post, error) {
 	}
 	for _, post := range posts {
 		tags, err := tagsRepo.GetTagsForPost(post.ID)
+		post.Content = post.Content[0:min(len(post.Content), 200)]
 		if err != nil {
 			return nil, err
 		}
