@@ -20,14 +20,14 @@ type IndexStruct struct {
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		config.TMPL.RenderError(w, "error.html", "Page Not Found", http.StatusNotFound)
+		config.TMPL.RenderError(w, "error.html", "The requested page could not be found", http.StatusNotFound)
 		return
 	}
 	switch r.Method {
 	case http.MethodGet:
 		indexGet(w, r)
 	default:
-		config.TMPL.RenderError(w, "error.html", "Method Not Allowed", http.StatusMethodNotAllowed)
+		config.TMPL.RenderError(w, "error.html", "The HTTP method used in the request is invalid. Please ensure you're using the correct method.", http.StatusMethodNotAllowed)
 	}
 }
 

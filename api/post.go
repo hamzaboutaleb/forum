@@ -36,6 +36,10 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusBadRequest, "The title or content cannot be empty. Please provide both and try again.", nil)
 		return
 	}
+	if len(post.Tags) > 5 {
+		utils.WriteJSON(w, http.StatusBadRequest, "The tag count must be less than 6", nil)
+		return
+	}
 	err = services.CreateNewPost(&post)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusInternalServerError, err.Error(), nil)

@@ -23,10 +23,11 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		PostFilter(w, r)
 	default:
+		utils.WriteJSON(w, http.StatusMethodNotAllowed, "The HTTP method used in the request is invalid. Please ensure you're using the correct method.", nil)
 	}
 }
 
-func pagination(r *http.Request) (int, int) {
+func getPaginationInfo(r *http.Request) (int, int) {
 	pageStr := r.URL.Query().Get("page")
 	currPage, err := strconv.Atoi(pageStr)
 	if err != nil || currPage < 1 {
@@ -36,11 +37,11 @@ func pagination(r *http.Request) (int, int) {
 }
 
 func PostFilter(w http.ResponseWriter, r *http.Request) {
-	currPage, limit := pagination(r)
+	currPage, limit := getPaginationInfo(r)
 	sessionID := utils.GetSessionCookie(r)
 	session, err := c.SESSION.GetSession(sessionID)
 	if err != nil {
-		config.TMPL.RenderError(w, "error.html", "Internal Server Error", http.StatusInternalServerError)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
 		return
 	}
 	var userId int64 = -1
@@ -48,13 +49,11 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		userId = session.UserId
 	}
 	r.ParseForm()
-	postType := 0
 	query := r.FormValue("query")
-	if r.FormValue("options") != "" {
-		postType, err = strconv.Atoi(r.FormValue("options"))
-	}
+	options := r.FormValue("options")
+	postType, err := strconv.Atoi(options)
 	if err != nil {
-		config.TMPL.RenderError(w, "error.html", "Bad request", http.StatusBadRequest)
+		config.TMPL.RenderError(w, "error.html", "The filter criteria provided is not allowed", http.StatusBadRequest)
 		return
 	}
 	postType, err = selectPostType(postType, userId != -1)
@@ -66,7 +65,7 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := postRep.GetPostsBy(query, postType, userId, currPage, limit)
 	if err != nil {
-		config.TMPL.RenderError(w, "error.html", err.Error(), 500)
+		config.TMPL.RenderError(w, "error.html", err.Error(), http.StatusInternalServerError)
 		return
 	}
 	posts, err = getPostsFilter(posts)
@@ -75,14 +74,11 @@ func PostFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	count := len(posts)
-	if (currPage-1)*limit > count {
-		currPage = max(int(math.Ceil(float64(count)/config.LIMIT_PER_PAGE)), 1)
-	}
-
-	sliceOfPosts := posts[(currPage-1)*limit : min(count, (currPage-1)*limit+limit)]
+	
+	currentPagePosts := getCurrentPagePosts(posts, currPage, limit, count)
 	page := NewPageStruct("forum", sessionID, nil)
 	page.Data = IndexStruct{
-		Posts:       sliceOfPosts,
+		Posts:       currentPagePosts,
 		TotalPages:  int(math.Ceil(float64(count) / config.LIMIT_PER_PAGE)),
 		CurrentPage: currPage,
 		Query:       query,
@@ -104,15 +100,22 @@ func getPostsFilter(posts []*models.Post) ([]*models.Post, error) {
 	return posts, nil
 }
 
+func getCurrentPagePosts(posts []*models.Post, currentPage int, limit int, count int) []*models.Post {
+	if (currentPage-1)*limit > count {
+		currentPage = max(int(math.Ceil(float64(count)/config.LIMIT_PER_PAGE)), 1)
+	}
+	return posts[(currentPage-1)*limit : min(count, (currentPage-1)*limit+limit)]
+}
+
 func selectPostType(value int, isAuth bool) (int, error) {
 	if value < 0 || value > 2 {
-		return 0, errors.New("invalid option")
+		return 0, errors.New("the filter criteria provided is not allowed")
 	}
 	if isAuth {
 		return value, nil
 	}
 	if value != 0 {
-		return 0, errors.New("bad request, you can't filter with that option")
+		return 0, errors.New("the selected filter is restricted to members only")
 	}
 	return 0, nil
 }

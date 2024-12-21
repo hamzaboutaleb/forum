@@ -28,20 +28,17 @@ func NewSessionManager() {
 }
 
 func (s *SessionManager) CreateSession(username string, userId int64) (*Session, error) {
-	err := s.DeleteOtherSession(userId)
-
-	query := `INSERT INTO sessions (id, username, userId, expiresAt) VALUES (?, ?, ?, ?)`
-	stmt, err := s.db.Prepare(query)
+	err := s.DeleteUserSessions(userId)
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
+	query := `INSERT INTO sessions (id, username, userId, expiresAt) VALUES (?, ?, ?, ?)`
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
 	expTime := time.Now().Add(SESSION_EXP_TIME * time.Second)
-	stmt.Exec(id.String(), username, userId, expTime)
+	s.db.Exec(query, id.String(), username, userId, expTime)
 	session, err := s.GetSession(id.String())
 	if err != nil {
 		return nil, err
@@ -70,23 +67,13 @@ func (s *SessionManager) GetSession(id string) (*Session, error) {
 
 func (s *SessionManager) DeleteSession(id string) error {
 	query := `DELETE FROM sessions WHERE userId = (SELECT userId FROM sessions WHERE id = ?)`
-	stmt, err := s.db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(id)
+	_, err := s.db.Exec(query, id)
 	return err
 }
 
-func (s *SessionManager) DeleteOtherSession(userId int64) error {
+func (s *SessionManager) DeleteUserSessions(userId int64) error {
 	query := "DELETE FROM sessions WHERE userId = ?"
-	stmt, err := s.db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(userId)
+	_, err := s.db.Exec(query, userId)
 	if err != nil {
 		return err
 	}

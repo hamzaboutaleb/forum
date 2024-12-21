@@ -21,6 +21,10 @@ func deleteCookie(w http.ResponseWriter) {
 }
 
 func LogutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJSON(w, http.StatusUnauthorized, "The HTTP method used in the request is invalid. Please ensure you're using the correct method.", nil)
+		return
+	}
 	sessionId := utils.GetSessionCookie(r)
 	config.SESSION.DeleteSession(sessionId)
 	deleteCookie(w)
